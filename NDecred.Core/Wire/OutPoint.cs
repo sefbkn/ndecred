@@ -14,16 +14,16 @@
         /// <summary>
         ///     The hash of ?
         /// </summary>
-        public byte[] Hash { get; }
+        public byte[] Hash { get; set;  }
 
         /// <summary>
         ///     The index of ? in ?
         /// </summary>
-        public uint Index { get; }
+        public uint Index { get; set; }
 
         /// <summary>
         ///     Tree?
         /// </summary>
-        public byte Tree { get; }
+        public byte Tree { get; set; }
     }
 }

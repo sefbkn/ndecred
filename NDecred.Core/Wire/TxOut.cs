@@ -9,8 +9,8 @@
             PkScript = pkScript;
         }
 
-        public long Value { get; }
-        public ushort Version { get; }
-        public byte[] PkScript { get; }
+        public long Value { get; set; }
+        public ushort Version { get; set; }
+        public byte[] PkScript { get; set; }
     }
 }

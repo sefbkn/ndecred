@@ -55,6 +55,8 @@ namespace NDecred.Core.Blockchain
 
         public byte[] Serialize()
         {
+            throw new NotImplementedException();
+
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream))
             {
