@@ -38,7 +38,7 @@ namespace NDecred.Core
         /// <param name="reader"></param>
         /// <returns>A 64 bit number containing the variable integer.</returns>
         /// <exception cref="Exception">
-        ///     If the parsed value is larger than the minimum expected value for the amount of space
+        ///     If the parsed value is smaller than the minimum expected value for the amount of space
         ///     consumed, an exception is thrown.
         /// </exception>
         public static ulong ReadVariableLengthInteger(this BinaryReader reader)

@@ -16,7 +16,7 @@ namespace NDecred.Core
         // Length of a private key, in bytes
         private const int KeyLength = 32;
 
-        private static readonly Base58Check Base58Check = new Base58Check();
+        private static readonly Base58Check Base58Check = new Base58Check(Hash.BLAKE256);
 
         public static string Serialize(Network network, ECDSAType type, bool isCompressed, byte[] privateKey)
         {
@@ -30,7 +30,7 @@ namespace NDecred.Core
 
         public static byte[] Deserialize(Network network, string wif)
         {
-            var extendedKeyCheck = new Base58Check().Decode(wif);
+            var extendedKeyCheck = Base58Check.Decode(wif);
 
             var prefix = ExtractPrefix(extendedKeyCheck);
             var isValidWifForNetwork = network.AddressPrefix.All.Any(p => p.SequenceEqual(prefix.networkPrefix));

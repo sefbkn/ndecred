@@ -1,12 +1,5 @@
 namespace NDecred.Core
 {
-    public enum PublicKeyFormat
-    {
-        PKFUncompressed = 0,
-        PKFCompressed = 1,
-        PKFHybrid = 2
-    }
-
     public class PublicKey
     {
         private readonly ECPublicSecurityService _ecPublicSecurityService;
@@ -23,8 +16,8 @@ namespace NDecred.Core
         {
             var prefix = network.AddressPrefix.PayToPublicKeyHash;
             var isCompressed = format == PublicKeyFormat.PKFCompressed;
-            var publicKeyHash = Hash.RIPEMD160(Hash.SHA256(Bytes));
-            return new Base58Check().Encode(prefix, publicKeyHash, isCompressed);
+            var publicKeyHash = Hash.RIPEMD160(Hash.BLAKE256(Bytes));
+            return new Base58Check(Hash.BLAKE256).Encode(prefix, publicKeyHash, isCompressed);
         }
 
         public bool VerifySignature(byte[] message, ECSignature signature)

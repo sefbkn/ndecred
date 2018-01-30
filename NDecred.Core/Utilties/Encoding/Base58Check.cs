@@ -8,14 +8,19 @@ namespace NDecred.Core
 	///     Base58Check is a standardized method to serialize and deserialize addresses
 	///     in human-readable form.
 	///     1. Version information is combined with data (into an 'extended key')
-	///     2. The 'extended key' is hashed with BLAKE256
+	///     2. The 'extended key' is hashed with BLAKE256D (unless if a specific hash function is supplied)
 	///     3. The first 4 bytes of the hash array are appended to to the 'extended key'
 	///     4. The resulting collection is encoded in base58.
 	/// </summary>
 	public class Base58Check : Base58
     {
+        private readonly Func<byte[], byte[]> _checksumHashAlgorithm;
         private const int ChecksumLength = 4;
-        private static readonly Func<byte[], byte[]> ChecksumHashAlgorithm = Hash.BLAKE256;
+
+        public Base58Check(Func<byte[], byte[]> checksumHashAlgorithm = null)
+        {
+            _checksumHashAlgorithm = checksumHashAlgorithm ?? Hash.BLAKE256D;
+        }
 
         public string Encode(IEnumerable<byte> versionPrefix, IEnumerable<byte> data, bool isCompressed)
         {
@@ -37,18 +42,20 @@ namespace NDecred.Core
             return result;
         }
 
-        private static bool HasValidChecksum(byte[] base58Bytes)
+        private bool HasValidChecksum(byte[] base58Bytes)
         {
             // The last 4 bytes are the checksum
             var payloadLength = base58Bytes.Length - ChecksumLength;
             var extendedKey = base58Bytes.Take(payloadLength).ToArray();
-            var extendedKeyChecksum = base58Bytes.Skip(payloadLength).Take(ChecksumLength).ToArray();
-            return CalculateChecksum(extendedKey).SequenceEqual(extendedKeyChecksum);
+            var extendedKeyChecksum = base58Bytes.Skip(payloadLength).Take(ChecksumLength);
+
+            var computedChecksum = _checksumHashAlgorithm(extendedKey).Take(ChecksumLength);
+            return computedChecksum.SequenceEqual(extendedKeyChecksum);
         }
 
-        private static byte[] CalculateChecksum(byte[] extendedKey)
+        private byte[] CalculateChecksum(byte[] extendedKey)
         {
-            return ChecksumHashAlgorithm(extendedKey).Take(ChecksumLength).ToArray();
+            return _checksumHashAlgorithm(extendedKey).Take(ChecksumLength).ToArray();
         }
     }
 }

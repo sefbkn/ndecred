@@ -6,7 +6,7 @@ namespace NDecred.Core.Tests.Utilities
 {
     public class Base58Tests
     {
-        private readonly Base58Check _subject = new Base58Check();
+        private readonly Base58Check _subject = new Base58Check(Hash.BLAKE256D);
 
         private readonly PublicKeyHash[] _p2pk =
         {
