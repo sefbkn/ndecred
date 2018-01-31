@@ -157,7 +157,7 @@ namespace NDecred.Core
         {
             var hash = reader.ReadBytes(32);
             var index = reader.ReadUInt32();
-            var tree = reader.ReadByte();
+            var tree = (TxTree) reader.ReadByte();
 
             return new OutPoint(hash, index, tree);
         }

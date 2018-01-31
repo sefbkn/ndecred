@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 
 namespace NDecred.Core
@@ -68,13 +69,27 @@ namespace NDecred.Core
         
         public byte[] Serialize()
         {
+            return Serialize(this.SerializationType);
+        }
+
+        /// <summary>
+        /// Serialize the current instance as a byte[] that can be sent over the network.
+        /// </summary>
+        /// <param name="serializationType">
+        /// The serialization method used.
+        /// This value will be encoded in the output of this method,
+        /// so the SerializationType property of this instance may not match.</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidDataException"></exception>
+        public byte[] Serialize(TxSerializeType serializationType)
+        {
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream))
             {
-                var serializedVersion = Version | ((uint)SerializationType << 16);
+                var serializedVersion = Version | ((uint)serializationType << 16);
                 writer.Write(serializedVersion);
                 
-                switch (SerializationType)
+                switch (serializationType)
                 {
                     case TxSerializeType.TxSerializeNoWitness:
                         EncodePrefix(writer);
@@ -93,12 +108,21 @@ namespace NDecred.Core
                         EncodeWitness(writer);
                         break;
                     default:
-                        throw new InvalidDataException($"unrecognized transaction type {SerializationType}");
+                        throw new InvalidEnumArgumentException($"unrecognized serialization type {serializationType}");
                 }
-
-                
+   
                 return memoryStream.ToArray();
-            }
+            }            
+        }
+
+        /// <summary>
+        /// Calculates the BLAKE256 hash of the current instance.  Witness data is not serialized.
+        /// </summary>
+        /// <returns>The hash as a byte[] with length 32</returns>
+        public byte[] GetHash()
+        {
+            var bytes = Serialize(TxSerializeType.TxSerializeNoWitness);
+            return Hash.BLAKE256(bytes);
         }
     }
 }
