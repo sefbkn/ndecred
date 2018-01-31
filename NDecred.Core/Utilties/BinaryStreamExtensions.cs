@@ -73,5 +73,19 @@ namespace NDecred.Core
 
             return value;
         }
+
+        public static byte[] ReadVariableLengthBytes(this BinaryReader reader, ulong maxLength)
+        {
+            var length = reader.ReadVariableLengthInteger();
+            if (length > maxLength) throw new Exception("payload length prefix is longer than max allowed length");
+            return reader.ReadBytes((int) length);
+        }
+
+        public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
+        {
+            var length = (ulong)bytes.Length;
+            writer.WriteVariableLengthInteger(length);
+            writer.Write(bytes);
+        }
     }
 }

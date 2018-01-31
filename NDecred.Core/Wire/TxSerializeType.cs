@@ -1,6 +1,6 @@
 ﻿namespace NDecred.Core
 {
-    public enum TxSerializeType
+    public enum TxSerializeType : uint
     {
         // TxSerializeFull indicates a transaction be serialized with the prefix
         // and all witness data.
