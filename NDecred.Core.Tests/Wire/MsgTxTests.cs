@@ -39,8 +39,7 @@ namespace NDecred.Core.Tests.Wire
 			    valueIn:         5000000000,
 			    blockHeight:     0x3F3F3F3F,
 			    blockIndex:      0x2E2E2E2E,
-			    signatureScript: new byte[]{0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62},
-			    witness: null
+			    signatureScript: new byte[]{0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
 		    );
 
 		    var txOut = new TxOut(

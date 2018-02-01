@@ -67,7 +67,6 @@ namespace NDecred.Core.Tests.Wire
                         previousOutPoint: new OutPoint(hash: new byte[32], index: 0xffffffff, tree: 0),
                         blockHeight: 0x15151515,
                         blockIndex: 0x34343434,
-                        witness: null,
                         signatureScript: new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
                     )
                 },

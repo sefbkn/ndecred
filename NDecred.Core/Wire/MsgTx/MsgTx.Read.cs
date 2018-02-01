@@ -13,7 +13,6 @@ namespace NDecred.Core
                 previousOutPoint: null,
                 blockHeight: 0,
                 blockIndex: 0,
-                witness: null,
                 signatureScript: reader.ReadVariableLengthBytes(MaxMessagePayload)
             );
         }
@@ -26,7 +25,6 @@ namespace NDecred.Core
                 previousOutPoint: null,
                 blockHeight: 0,
                 blockIndex: 0,
-                witness: null,
                 signatureScript: reader.ReadVariableLengthBytes(MaxMessagePayload)
             );
         }
@@ -44,7 +42,6 @@ namespace NDecred.Core
                 previousOutPoint: null,
                 blockHeight: blockHeight,
                 blockIndex: blockIndex,
-                witness: null,
                 signatureScript: signatureScript
             );
         }
@@ -148,7 +145,6 @@ namespace NDecred.Core
                 previousOutPoint: prevOutPoint,
                 blockHeight: 0,
                 blockIndex: 0,
-                witness: null,
                 signatureScript: null
             );
         }

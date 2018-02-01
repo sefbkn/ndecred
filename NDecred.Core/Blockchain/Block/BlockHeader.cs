@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
+using BlakeSharp;
 
 namespace NDecred.Core
 {
-    public partial struct BlockHeader
+    public partial class BlockHeader
     {
         // Version of the block.  This is not the same as the protocol version.
         public int Version { get; set; }
@@ -72,8 +73,13 @@ namespace NDecred.Core
         public const int MaxBlockHeaderPayload = 84 * 32 * 3;
     }
 
-    public partial struct BlockHeader
+    public partial class BlockHeader
     {
+        public BlockHeader()
+        {
+            
+        }
+        
         public BlockHeader(byte[] message)
         {
             if (message.Length != Length)
@@ -139,6 +145,11 @@ namespace NDecred.Core
 
                 return ms.ToArray();
             }
+        }
+
+        public byte[] GetHash()
+        {
+            return Hash.BLAKE256(Serialize());
         }
     }
 }

@@ -14,7 +14,6 @@ namespace NDecred.Core
             OutPoint previousOutPoint, 
             uint blockHeight, 
             uint blockIndex,
-            TxWitness witness, 
             byte[] signatureScript)
         {
             PreviousOutPoint = previousOutPoint;
@@ -22,16 +21,17 @@ namespace NDecred.Core
             ValueIn = valueIn;
             BlockHeight = blockHeight;
             BlockIndex = blockIndex;
-            Witness = witness;
             SignatureScript = signatureScript;
         }
 
+        // Non witness data
         public OutPoint PreviousOutPoint { get; }
         public uint Sequence { get; }
+        
+        // Witness data
         public long ValueIn { get; set; }
         public uint BlockHeight { get; set; }
         public uint BlockIndex { get; set; }
-        public TxWitness Witness { get; set; }
         public byte[] SignatureScript { get; set; }
         
 
