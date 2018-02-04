@@ -16,7 +16,7 @@ namespace NDecred.Wire
         {
         }
 
-        public MessageHeader(CurrencyNet currencyNet, Command command, byte[] payload)
+        public MessageHeader(CurrencyNet currencyNet, MsgCommand command, byte[] payload)
         {
             CurrencyNetwork = currencyNet;
             Command = command;
@@ -25,7 +25,7 @@ namespace NDecred.Wire
         }
 
         public CurrencyNet CurrencyNetwork { get; set; }
-        public Command Command { get; set; }
+        public MsgCommand Command { get; set; }
         public int PayloadLength { get; set; }
         public byte[] Checksum { get; set; }
 
@@ -33,7 +33,7 @@ namespace NDecred.Wire
         {
             CurrencyNetwork = (CurrencyNet) reader.ReadUInt32();
 
-            Command = new Command();
+            Command = new MsgCommand();
             Command.Decode(reader);
 
             PayloadLength = reader.ReadInt32();

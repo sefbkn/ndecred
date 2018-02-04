@@ -2,7 +2,7 @@
 
 namespace NDecred.Wire
 {
-    public class MsgPing : NetworkEncodable
+    public class MsgPong : NetworkEncodable
     {
         public ulong Nonce { get; set; }
 

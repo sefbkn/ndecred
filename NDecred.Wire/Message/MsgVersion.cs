@@ -19,8 +19,8 @@ namespace NDecred.Wire
         public MsgVersion()
         {
             UserAgent = DefaultUserAgent;
-            AddrMe = new NetworkAddress();
-            AddrYou = new NetworkAddress();
+            AddrMe = new NetworkAddress(false);
+            AddrYou = new NetworkAddress(false);
         }
 
         // Version of the protocol the node is using.
@@ -58,10 +58,10 @@ namespace NDecred.Wire
             Services = (ServiceFlag) reader.ReadUInt64();
             Timestamp = DateTimeExtensions.FromUnixTime(reader.ReadInt64());
 
-            AddrYou = new NetworkAddress();
+            AddrYou = new NetworkAddress(false);
             AddrYou.Decode(reader);
 
-            AddrMe = new NetworkAddress();
+            AddrMe = new NetworkAddress(false);
             AddrMe.Decode(reader);
 
             Nonce = reader.ReadUInt64();
