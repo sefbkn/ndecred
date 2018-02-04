@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using NDecred.Common;
 using NDecred.Wire;
 using Xunit;
 
@@ -119,6 +120,39 @@ namespace NDecred.Network.Tests
 		    var result = subject.Encode();
 		    
 		    Assert.True(result.SequenceEqual(_testBlockBytes));
+	    }
+
+	    [Fact]
+	    public void BlockHash_GivenKnownBlock_ReturnsExpectedBlockHash()
+	    {
+		    var expected = Hex.ToByteArray("6b73b6f6faebbfd6a541f38820593e43c50ce1abf64602ab8ac7d5502991c37f").Reverse();
+		    var subject = new MsgBlock();
+		    subject.Decode(_testBlockBytes);
+
+		    var actual = subject.BlockHash();
+		    Assert.True(expected.SequenceEqual(actual));
+	    }
+
+	    [Fact]
+	    public void TxHashes_GivenKnownBlock_ReturnsExpectedHash()
+	    {
+		    var expected = Hex.ToByteArray("55a25248c04dd8b6599ca2a708413c00d79ae90ce075c54e8a967a647d7e4bea").Reverse();
+		    var subject = new MsgBlock();
+		    subject.Decode(_testBlockBytes);
+
+		    var actual = subject.TxHashes().Single();
+		    
+		    Assert.True(expected.SequenceEqual(actual));
+	    }
+	    [Fact]
+	    public void STxHashes_GivenKnownBlock_ReturnsExpectedHash()
+	    {
+		    var expected = Hex.ToByteArray("ae208a69f3ee088d0328126e3d9bef7652b108d1904f27b166c5999233a801d4").Reverse();
+		    var subject = new MsgBlock();
+		    subject.Decode(_testBlockBytes);
+
+		    var actual = subject.STxHashes().Single();
+		    Assert.True(expected.SequenceEqual(actual));
 	    }
     }
 }

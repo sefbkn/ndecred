@@ -4,15 +4,19 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    public abstract class Message : NetworkEncodable
+    /// <summary>
+    /// Represents a header that is used to describe
+    /// the payload sent/received over the network.
+    /// </summary>
+    public class MessageHeader : NetworkEncodable
     {
         public static readonly int ChecksumLengthBytes = 4;
 
-        public Message()
+        public MessageHeader()
         {
         }
 
-        public Message(CurrencyNet currencyNet, Command command, byte[] payload)
+        public MessageHeader(CurrencyNet currencyNet, Command command, byte[] payload)
         {
             CurrencyNetwork = currencyNet;
             Command = command;
