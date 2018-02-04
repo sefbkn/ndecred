@@ -34,7 +34,17 @@ namespace NDecred.Wire
 
         public override void Decode(BinaryReader reader)
         {
-            throw new NotImplementedException();
+            Header.Decode(reader);
+
+            var txCount = reader.ReadVariableLengthInteger();
+            Transactions = Enumerable.Repeat(new MsgTx(), (int) txCount).ToArray();
+            for (ulong i = 0; i < txCount; i++)
+                Transactions[i].Decode(reader);
+            
+            var stxCount = reader.ReadVariableLengthInteger();
+            StakeTransactions = Enumerable.Repeat(new MsgTx(), (int) stxCount).ToArray();
+            for (ulong i = 0; i < stxCount; i++)
+                StakeTransactions[i].Decode(reader);
         }
 
         public override void Encode(BinaryWriter writer)
