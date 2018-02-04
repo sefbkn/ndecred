@@ -4,7 +4,7 @@ using NDecred.Common;
 
 namespace NDecred.Network
 {
-    public class BlockHeader : NetworkMessage
+    public class MsgBlockHeader : NetworkMessage
     {
         // const MaxBlockHeaderPayload = 84 + (chainhash.HashSize * 3)
         // 180 bytes.
@@ -15,7 +15,7 @@ namespace NDecred.Network
         // blockHeaderLen
         public const int Length = 180;
 
-        public BlockHeader()
+        public MsgBlockHeader()
         {
             PreviousBlockHash = new byte[0];
             MerkleRoot = new byte[0];
@@ -68,7 +68,7 @@ namespace NDecred.Network
 
         // Time the block was created.  This is, unfortunately, encoded as a
         // uint32 on the wire and therefore is limited to 2106.
-        public uint Timestamp { get; set; }
+        public DateTime Timestamp { get; set; }
 
         // Nonce is techincally a part of ExtraData,
         // but we use it as the classical 4-byte nonce here.
@@ -97,7 +97,7 @@ namespace NDecred.Network
             SBits = reader.ReadInt64();
             Height = reader.ReadUInt32();
             Size = reader.ReadUInt32();
-            Timestamp = reader.ReadUInt32();
+            Timestamp = DateTimeExtensions.FromUnixTime(reader.ReadUInt32());
             Nonce = reader.ReadUInt32();
             ExtraData = reader.ReadBytes(32);
             StakeVersion = reader.ReadUInt32();
@@ -119,7 +119,7 @@ namespace NDecred.Network
             writer.Write(SBits);
             writer.Write(Height);
             writer.Write(Size);
-            writer.Write(Timestamp);
+            writer.Write((uint)Timestamp.ToUnixTime());
             writer.Write(Nonce);
             writer.Write(ExtraData);
             writer.Write(StakeVersion);

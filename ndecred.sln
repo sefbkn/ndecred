@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDecred.Common", "NDecred.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDecred.Cryptography", "NDecred.Cryptography\NDecred.Cryptography.csproj", "{D0B5DDAC-3093-4CEB-867E-CF095C81BFD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDecred.Cryptography.Tests", "NDecred.Cryptography.Tests\NDecred.Cryptography.Tests.csproj", "{EA50339B-A895-4AF1-B75A-5D9435D7171D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,9 +118,22 @@ Global
 		{D0B5DDAC-3093-4CEB-867E-CF095C81BFD4}.Release|x64.Build.0 = Release|Any CPU
 		{D0B5DDAC-3093-4CEB-867E-CF095C81BFD4}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0B5DDAC-3093-4CEB-867E-CF095C81BFD4}.Release|x86.Build.0 = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|x64.Build.0 = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Debug|x86.Build.0 = Debug|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|x64.ActiveCfg = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|x64.Build.0 = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|x86.ActiveCfg = Release|Any CPU
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B2A04458-C24A-4F27-A123-A68629CF0B12} = {FCDBED91-2C54-4776-88A7-16C90CE71C27}
 		{FAFB1F45-F04C-4373-918B-1D11B69F9701} = {FCDBED91-2C54-4776-88A7-16C90CE71C27}
+		{EA50339B-A895-4AF1-B75A-5D9435D7171D} = {FCDBED91-2C54-4776-88A7-16C90CE71C27}
 	EndGlobalSection
 EndGlobal

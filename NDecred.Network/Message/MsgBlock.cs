@@ -11,9 +11,9 @@ namespace NDecred.Network
     {
         public MsgBlock()
         {
-            Header = new BlockHeader();
+            Header = new MsgBlockHeader();
         }
-        public BlockHeader Header { get; set; }
+        public MsgBlockHeader Header { get; set; }
         public MsgTx[] Transactions { get; set; }
         public MsgTx[] StakeTransactions { get; set; }
 

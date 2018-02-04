@@ -2,8 +2,6 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>NDecred.Network.Tests</AssemblyName>
-    <RootNamespace>NDecred.Network.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
@@ -11,13 +9,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NDecred.Core\NDecred.Core.csproj">
-      <Project>{254B5F1F-5E8B-4C77-8FAE-796526B07CD9}</Project>
-      <Name>NDecred.Core</Name>
+    <ProjectReference Include="..\NDecred.Common\NDecred.Common.csproj">
+      <Project>{5202A495-EFE7-4642-9848-37E8BB4A56B8}</Project>
+      <Name>NDecred.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDecred.Network\NDecred.Network.csproj">
-      <Project>{F041C01B-D462-4945-9F94-9690FD438C17}</Project>
-      <Name>NDecred.Network</Name>
+    <ProjectReference Include="..\NDecred.Cryptography\NDecred.Cryptography.csproj">
+      <Project>{D0B5DDAC-3093-4CEB-867E-CF095C81BFD4}</Project>
+      <Name>NDecred.Cryptography</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

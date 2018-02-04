@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace NDecred.Common
 {
@@ -80,12 +81,29 @@ namespace NDecred.Common
             if (length > maxLength) throw new Exception("payload length prefix is longer than max allowed length");
             return reader.ReadBytes((int) length);
         }
+        
+        public static string ReadVariableLengthString(this BinaryReader reader, ulong maxLength)
+        {
+            var chars = reader.ReadVariableLengthBytes(maxLength)
+                .Select(b => (char) b)
+                .ToArray();
+            
+            return new string(chars);
+        }
+
 
         public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
         {
             var length = (ulong)bytes.Length;
             writer.WriteVariableLengthInteger(length);
             writer.Write(bytes);
+        }
+        
+        public static void WriteVariableLengthString(this BinaryWriter writer, string str)
+        {
+            var length = (ulong)str.Length;
+            writer.WriteVariableLengthInteger(length);
+            writer.Write(str);
         }
     }
 }
