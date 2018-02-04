@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using NDecred.Common;
 using Xunit;
 
 namespace NDecred.Core.Tests.Utilities

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BlakeSharp;
+using NDecred.Common;
 using Xunit;
 
 namespace NDecred.Core.Tests

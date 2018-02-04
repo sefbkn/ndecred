@@ -1,9 +1,5 @@
-using System;
-using System.Security.Cryptography;
-using System.Text;
-using BlakeSharp;
 using Xunit;
-using NDecred.Core;
+using NDecred.Cryptography;
 
 namespace NDecred.Core.Tests
 {

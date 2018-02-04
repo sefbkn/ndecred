@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NDecred.Core\NDecred.Core.csproj">
+      <Project>{254B5F1F-5E8B-4C77-8FAE-796526B07CD9}</Project>
+      <Name>NDecred.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDecred.Network\NDecred.Network.csproj">
+      <Project>{F041C01B-D462-4945-9F94-9690FD438C17}</Project>
+      <Name>NDecred.Network</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

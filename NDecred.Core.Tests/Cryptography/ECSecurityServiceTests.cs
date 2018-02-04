@@ -1,6 +1,7 @@
 ﻿using System.Text;
+using NDecred.Common;
+using NDecred.Cryptography;
 using Xunit;
-using NDecred.Core;
 
 namespace NDecred.Core.Tests.Cryptography
 {

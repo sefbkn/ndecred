@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using NDecred.Common;
+using NDecred.Common.Encoding;
 using Xunit;
 using Xunit.Sdk;
 
