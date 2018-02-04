@@ -4,18 +4,18 @@ using System.Linq;
 
 namespace NDecred.Common.Encoding
 {
-	/// <summary>
-	///     Base58Check is a standardized method to serialize and deserialize addresses
-	///     in human-readable form.
-	///     1. Version information is combined with data (into an 'extended key')
-	///     2. The 'extended key' is hashed with BLAKE256D (unless if a specific hash function is supplied)
-	///     3. The first 4 bytes of the hash array are appended to to the 'extended key'
-	///     4. The resulting collection is encoded in base58.
-	/// </summary>
-	public class Base58Check : Base58
+    /// <summary>
+    ///     Base58Check is a standardized method to serialize and deserialize addresses
+    ///     in human-readable form.
+    ///     1. Version information is combined with data (into an 'extended key')
+    ///     2. The 'extended key' is hashed with BLAKE256D (unless if a specific hash function is supplied)
+    ///     3. The first 4 bytes of the hash array are appended to to the 'extended key'
+    ///     4. The resulting collection is encoded in base58.
+    /// </summary>
+    public class Base58Check : Base58
     {
-        private readonly Func<byte[], byte[]> _checksumHashAlgorithm;
         private const int ChecksumLength = 4;
+        private readonly Func<byte[], byte[]> _checksumHashAlgorithm;
 
         public Base58Check(Func<byte[], byte[]> checksumHashAlgorithm = null)
         {

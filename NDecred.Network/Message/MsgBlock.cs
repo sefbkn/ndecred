@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NDecred.Common;
-using NDecred.Core;
 
 namespace NDecred.Network
 {
-    public class MsgBlock : NetworkMessage
+    public class MsgBlock : NetworkEncodable
     {
         public MsgBlock()
         {
             Header = new MsgBlockHeader();
         }
+
         public MsgBlockHeader Header { get; set; }
         public MsgTx[] Transactions { get; set; }
         public MsgTx[] StakeTransactions { get; set; }
@@ -40,14 +40,14 @@ namespace NDecred.Network
         public override void Encode(BinaryWriter writer)
         {
             Header.Encode(writer);
-            
+
             writer.WriteVariableLengthInteger((ulong) Transactions.Length);
-            foreach(var tx in Transactions)
+            foreach (var tx in Transactions)
                 tx.Encode(writer);
 
             writer.WriteVariableLengthInteger((ulong) StakeTransactions.Length);
-            foreach(var tx in StakeTransactions)
-                tx.Encode(writer);            
+            foreach (var tx in StakeTransactions)
+                tx.Encode(writer);
         }
     }
 }

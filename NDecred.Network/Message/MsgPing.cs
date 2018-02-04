@@ -1,9 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace NDecred.Network
 {
-    public class Ping : NetworkMessage
+    public class Ping : NetworkEncodable
     {
         public ulong Nonce { get; set; }
 

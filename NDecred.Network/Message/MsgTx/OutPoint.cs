@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace NDecred.Core
 {
@@ -18,36 +17,41 @@ namespace NDecred.Core
         // transaction's location in a block.
         TxTreeStake = 1
     }
-    
+
     // OutPoint defines a bitcoin data type that is used to track previous
     // transaction outputs.
     public class OutPoint
     {
+        public OutPoint()
+        {
+            Hash = new byte[32];
+        }
+
         public OutPoint(byte[] hash, uint index, TxTree tree)
         {
-            if(hash == null)
+            if (hash == null)
                 throw new ArgumentNullException(nameof(hash), "OutPoint hash parameter must not be null");
-            if(hash.Length != 32)
+            if (hash.Length != 32)
                 throw new ArgumentException("OutPoint hash parameter length must equal 32");
-            
+
             Hash = hash;
             Index = index;
-            Tree = (byte)tree;
+            Tree = (byte) tree;
         }
 
         /// <summary>
         ///     The hash of ?
         /// </summary>
-        public byte[] Hash { get; }
+        public byte[] Hash { get; set; }
 
         /// <summary>
         ///     The index of ? in ?
         /// </summary>
-        public uint Index { get; }
+        public uint Index { get; set; }
 
         /// <summary>
         ///     Tree?
         /// </summary>
-        public byte Tree { get; }
+        public byte Tree { get; set; }
     }
 }

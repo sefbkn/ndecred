@@ -56,26 +56,28 @@ namespace NDecred.Core.Tests.Wire
                 0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62 // Signature script [229]
             };
 
-            public override MsgTx Message => new MsgTx {
+            public override MsgTx Message => new MsgTx
+            {
                 Version = 1,
                 SerializationType = TxSerializeType.TxSerializeFull,
                 TxIn = new[]
                 {
-                    new TxIn(
-                        sequence: 0xffffffff,
-                        valueIn: 0x1212121212121212,
-                        previousOutPoint: new OutPoint(hash: new byte[32], index: 0xffffffff, tree: 0),
-                        blockHeight: 0x15151515,
-                        blockIndex: 0x34343434,
-                        signatureScript: new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
-                    )
+                    new TxIn
+                    {
+                        Sequence = 0xffffffff,
+                        ValueIn = 0x1212121212121212,
+                        PreviousOutPoint = new OutPoint(new byte[32], 0xffffffff, 0),
+                        BlockHeight = 0x15151515,
+                        BlockIndex = 0x34343434,
+                        SignatureScript = new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
+                    }
                 },
                 TxOut = new[]
                 {
                     new TxOut(
-                        value: 0x12a05f200,
-                        version: 0xabab,
-                        pkScript: new byte[]
+                        0x12a05f200,
+                        0xabab,
+                        new byte[]
                         {
                             0x41, // OP_DATA_65
                             0x04, 0xd6, 0x4b, 0xdf, 0xd0, 0x9e, 0xb1, 0xc5,
@@ -91,9 +93,9 @@ namespace NDecred.Core.Tests.Wire
                         }
                     ),
                     new TxOut(
-                        value: 0x5f5e100,
-                        version: 0xbcbc,
-                        pkScript: new byte[]
+                        0x5f5e100,
+                        0xbcbc,
+                        new byte[]
                         {
                             0x41, // OP_DATA_65
                             0x04, 0xd6, 0x4b, 0xdf, 0xd0, 0x9e, 0xb1, 0xc5,
@@ -108,7 +110,7 @@ namespace NDecred.Core.Tests.Wire
                             0xac // OP_CHECKSIG
                         }
                     )
-                }                
+                }
             };
         }
     }

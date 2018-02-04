@@ -4,7 +4,7 @@ using NDecred.Common;
 
 namespace NDecred.Network
 {
-    public class MsgBlockHeader : NetworkMessage
+    public class MsgBlockHeader : NetworkEncodable
     {
         // const MaxBlockHeaderPayload = 84 + (chainhash.HashSize * 3)
         // 180 bytes.
@@ -80,7 +80,7 @@ namespace NDecred.Network
 
         // Stake version used for voting
         public uint StakeVersion { get; set; }
-        
+
         public override void Decode(BinaryReader reader)
         {
             Version = reader.ReadInt32();
@@ -119,12 +119,12 @@ namespace NDecred.Network
             writer.Write(SBits);
             writer.Write(Height);
             writer.Write(Size);
-            writer.Write((uint)Timestamp.ToUnixTime());
+            writer.Write((uint) Timestamp.ToUnixTime());
             writer.Write(Nonce);
             writer.Write(ExtraData);
             writer.Write(StakeVersion);
         }
-        
+
         public byte[] GetHash()
         {
             return Hash.BLAKE256(Encode());

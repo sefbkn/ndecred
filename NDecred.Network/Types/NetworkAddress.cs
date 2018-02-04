@@ -1,20 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using NDecred.Common;
 
 namespace NDecred.Network
 {
     // NetAddress defines information about a peer on the network including the time
     // it was last seen, the services it supports, its IP address, and port.
-    public class NetworkAddress : NetworkMessage
+    public class NetworkAddress : NetworkEncodable
     {
         public DateTime Timestamp { get; set; }
         public ServiceFlag Services { get; set; }
         public byte[] Ip { get; set; }
         public ushort Port { get; set; }
-        
+
         public void AddService(ServiceFlag service)
         {
             Services |= service;
@@ -30,9 +29,9 @@ namespace NDecred.Network
 
         public override void Encode(BinaryWriter writer)
         {
-            writer.Write((uint)Timestamp.ToUnixTime());            
-            writer.Write((ulong)Services);
-            
+            writer.Write((uint) Timestamp.ToUnixTime());
+            writer.Write((ulong) Services);
+
             EncodeIpAddress(writer);
             EncodePort(writer);
         }

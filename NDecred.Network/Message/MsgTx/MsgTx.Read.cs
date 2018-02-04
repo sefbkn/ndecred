@@ -9,45 +9,32 @@ namespace NDecred.Network
     {
         private TxIn ReadTxInWitnessValueSigning(BinaryReader reader)
         {
-            return new TxIn(
-                sequence: 0,
-                valueIn: (long) reader.ReadUInt64(),
-                previousOutPoint: null,
-                blockHeight: 0,
-                blockIndex: 0,
-                signatureScript: reader.ReadVariableLengthBytes(MaxMessagePayload)
-            );
+            return new TxIn
+            {
+                ValueIn = (long) reader.ReadUInt64(),
+                SignatureScript = reader.ReadVariableLengthBytes(MaxMessagePayload)
+            };
         }
-        
+
         private TxIn ReadTxInWitnessSigning(BinaryReader reader)
         {
-            return new TxIn(
-                sequence: 0,
-                valueIn: 0,
-                previousOutPoint: null,
-                blockHeight: 0,
-                blockIndex: 0,
-                signatureScript: reader.ReadVariableLengthBytes(MaxMessagePayload)
-            );
+            return new TxIn
+            {
+                SignatureScript = reader.ReadVariableLengthBytes(MaxMessagePayload)
+            };
         }
 
         private TxIn ReadTxInWitness(BinaryReader reader)
         {
-            var valueIn = (long) reader.ReadUInt64();
-            var blockHeight = reader.ReadUInt32();
-            var blockIndex = reader.ReadUInt32();
-            var signatureScript = reader.ReadVariableLengthBytes(MaxMessagePayload);
-
-            return new TxIn(
-                sequence: 0,
-                valueIn: valueIn,
-                previousOutPoint: null,
-                blockHeight: blockHeight,
-                blockIndex: blockIndex,
-                signatureScript: signatureScript
-            );
+            return new TxIn
+            {
+                ValueIn = (long) reader.ReadUInt64(),
+                BlockHeight = reader.ReadUInt32(),
+                BlockIndex = reader.ReadUInt32(),
+                SignatureScript = reader.ReadVariableLengthBytes(MaxMessagePayload)
+            };
         }
-        
+
         private TxOut ReadTxOut(BinaryReader reader)
         {
             var value = (long) reader.ReadUInt64();
@@ -56,7 +43,7 @@ namespace NDecred.Network
 
             return new TxOut(value, version, pkScript);
         }
-        
+
         private void DecodeWitnessValueSigning(BinaryReader reader)
         {
             var count = reader.ReadVariableLengthInteger();
@@ -141,14 +128,11 @@ namespace NDecred.Network
             var prevOutPoint = ReadOutPoint(reader);
             var sequence = reader.ReadUInt32();
 
-            return new TxIn(
-                sequence: sequence,
-                valueIn: 0,
-                previousOutPoint: prevOutPoint,
-                blockHeight: 0,
-                blockIndex: 0,
-                signatureScript: null
-            );
+            return new TxIn
+            {
+                Sequence = sequence,
+                PreviousOutPoint = prevOutPoint
+            };
         }
 
         private OutPoint ReadOutPoint(BinaryReader reader)
@@ -159,6 +143,5 @@ namespace NDecred.Network
 
             return new OutPoint(hash, index, tree);
         }
-
     }
 }

@@ -5,7 +5,7 @@ using NDecred.Core;
 
 namespace NDecred.Network
 {
-    public partial class MsgTx : NetworkMessage
+    public partial class MsgTx : NetworkEncodable
     {
         public const int MaxMessagePayload = 1024 * 1024 * 32;
         public const int MinTxInPayload = 11 + 32;
@@ -29,7 +29,7 @@ namespace NDecred.Network
             var version = reader.ReadUInt32();
             Version = (ushort) (version & 0xffff);
             SerializationType = (TxSerializeType) (version >> 16);
-    
+
             switch (SerializationType)
             {
                 case TxSerializeType.TxSerializeNoWitness:
@@ -55,24 +55,25 @@ namespace NDecred.Network
 
         public override void Encode(BinaryWriter writer)
         {
-            Encode(writer, this.SerializationType);
+            Encode(writer, SerializationType);
         }
 
         /// <summary>
-        /// Serialize the current instance as a byte[] that can be sent over the network.
+        ///     Serialize the current instance as a byte[] that can be sent over the network.
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="serializationType">
-        /// The serialization method used.
-        /// This value will be encoded in the output of this method,
-        /// so the SerializationType property of this instance may not match.</param>
+        ///     The serialization method used.
+        ///     This value will be encoded in the output of this method,
+        ///     so the SerializationType property of this instance may not match.
+        /// </param>
         /// <returns></returns>
         /// <exception cref="InvalidDataException"></exception>
         private void Encode(BinaryWriter writer, TxSerializeType serializationType)
         {
-            var serializedVersion = Version | ((uint)serializationType << 16);
+            var serializedVersion = Version | ((uint) serializationType << 16);
             writer.Write(serializedVersion);
-            
+
             switch (serializationType)
             {
                 case TxSerializeType.TxSerializeNoWitness:
@@ -97,21 +98,21 @@ namespace NDecred.Network
         }
 
         /// <summary>
-        /// Calculates the BLAKE256 hash of the current instance.  Witness data is not serialized.
+        ///     Calculates the BLAKE256 hash of the current instance.  Witness data is not serialized.
         /// </summary>
         /// <returns>The hash as a byte[] with length 32</returns>
         public byte[] GetHash()
         {
             byte[] bytes;
-            
-            using(var ms = new MemoryStream())
+
+            using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms))
             {
                 Encode(bw, TxSerializeType.TxSerializeNoWitness);
                 bw.Flush();
                 bytes = ms.ToArray();
             }
-            
+
             return Hash.BLAKE256(bytes);
         }
     }

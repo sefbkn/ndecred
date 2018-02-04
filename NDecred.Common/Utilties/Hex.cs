@@ -7,7 +7,7 @@ namespace NDecred.Common
     public static class Hex
     {
         /// <summary>
-        /// Converts a string of hexadecimal characters to a byte[]
+        ///     Converts a string of hexadecimal characters to a byte[]
         /// </summary>
         /// <param name="hex"></param>
         /// <returns></returns>
@@ -18,7 +18,7 @@ namespace NDecred.Common
         }
 
         /// <summary>
-        /// Converts a byte[] to a string of lowercase hexadecimal characters
+        ///     Converts a byte[] to a string of lowercase hexadecimal characters
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>

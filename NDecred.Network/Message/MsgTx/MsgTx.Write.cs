@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using NDecred.Common;
 using NDecred.Core;
 
@@ -12,22 +11,22 @@ namespace NDecred.Network
             writer.WriteVariableLengthInteger((ulong) TxIn.Length);
             foreach (var tx in TxIn)
                 WriteTxInPrefix(writer, tx);
-            
+
             writer.WriteVariableLengthInteger((ulong) TxOut.Length);
-            foreach(var tx in TxOut)
+            foreach (var tx in TxOut)
                 WriteTxOut(writer, tx);
-            
+
             writer.Write(LockTime);
             writer.Write(Expiry);
         }
 
         private void WriteTxOut(BinaryWriter writer, TxOut txOut)
         {
-            writer.Write((ulong)txOut.Value);
+            writer.Write((ulong) txOut.Value);
             writer.Write(txOut.Version);
             writer.WriteVariableLengthBytes(txOut.PkScript);
         }
-        
+
         private void WriteTxInPrefix(BinaryWriter writer, TxIn txIn)
         {
             WriteOutPoint(writer, txIn.PreviousOutPoint);

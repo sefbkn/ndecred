@@ -1,40 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using NDecred.Common;
 
 namespace NDecred.Core
 {
     public class TxIn
     {
-        private readonly int _hashCode;
-        
-        public TxIn(
-            uint sequence, 
-            long valueIn,
-            OutPoint previousOutPoint, 
-            uint blockHeight, 
-            uint blockIndex,
-            byte[] signatureScript)
+        public TxIn()
         {
-            PreviousOutPoint = previousOutPoint;
-            Sequence = sequence;
-            ValueIn = valueIn;
-            BlockHeight = blockHeight;
-            BlockIndex = blockIndex;
-            SignatureScript = signatureScript;
+            PreviousOutPoint = new OutPoint();
+            SignatureScript = new byte[0];
         }
 
         // Non witness data
-        public OutPoint PreviousOutPoint { get; }
-        public uint Sequence { get; }
-        
+        public OutPoint PreviousOutPoint { get; set; }
+        public uint Sequence { get; set; }
+
         // Witness data
         public long ValueIn { get; set; }
         public uint BlockHeight { get; set; }
         public uint BlockIndex { get; set; }
         public byte[] SignatureScript { get; set; }
-        
+
 
         public void WriteTxInWitnessValueSigning(BinaryWriter writer)
         {

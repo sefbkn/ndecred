@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using NDecred.Common;
 using Xunit;
@@ -14,11 +13,11 @@ namespace NDecred.Core.Tests.Utilities
             // Seed the test with numbers
             // 2^n, 2^n + 1, 2^n -1 where n [0, 63]
             var tests = Enumerable.Range(0, 63)
-                .Select(i => (ulong)1 << i)
-                .SelectMany(i => new[]{i - 1, i, i + 1 })
+                .Select(i => (ulong) 1 << i)
+                .SelectMany(i => new[] {i - 1, i, i + 1})
                 .ToArray();
 
-            for(var i = 0; i < 63; i++)
+            for (var i = 0; i < 63; i++)
             {
                 var expected = tests[i];
 
@@ -33,16 +32,15 @@ namespace NDecred.Core.Tests.Utilities
                 }
             }
         }
-        
+
         [Fact]
         public void ReadVariableLengthInteger_GivenInputsAtFlagValues_WritesUShort()
         {
             // Test the flags used to determine the size of the integer.
             // These values should cause a ushort to be written to to the stream.
-            var tests = new byte[]{0xFD, 0xFE, 0xFF};
+            var tests = new byte[] {0xFD, 0xFE, 0xFF};
 
-            foreach(var test in tests)
-            {
+            foreach (var test in tests)
                 using (var ms = new MemoryStream())
                 using (var bw = new BinaryWriter(ms))
                 {
@@ -52,8 +50,6 @@ namespace NDecred.Core.Tests.Utilities
                     var writtenBytes = ms.ToArray();
                     Assert.Equal(expectedSequence, writtenBytes);
                 }
-            }
         }
     }
 }
-

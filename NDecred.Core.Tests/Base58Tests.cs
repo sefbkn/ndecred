@@ -2,7 +2,6 @@
 using NDecred.Common;
 using NDecred.Common.Encoding;
 using Xunit;
-using Xunit.Sdk;
 
 namespace NDecred.Core.Tests.Utilities
 {
@@ -53,7 +52,15 @@ namespace NDecred.Core.Tests.Utilities
                 }))
             }
         };
-        
+
+        private class PublicKeyHash
+        {
+            public byte[] NetworkPrefix { get; set; }
+            public byte[] Hash { get; set; }
+            public string Address { get; set; }
+            public bool IsValid { get; set; }
+        }
+
         [Fact]
         public void Base58Check_Encode_AddressPassesValidityCheck()
         {
@@ -64,16 +71,8 @@ namespace NDecred.Core.Tests.Utilities
                 if (testCase.IsValid)
                     Assert.Equal(testCase.Address, address);
                 else
-                    Assert.NotEqual(testCase.Address, address);                
+                    Assert.NotEqual(testCase.Address, address);
             }
-        }
-        
-        private class PublicKeyHash
-        {
-            public byte[] NetworkPrefix { get; set; }
-            public byte[] Hash { get; set; }
-            public string Address { get; set; }
-            public bool IsValid { get; set; }
         }
     }
 }

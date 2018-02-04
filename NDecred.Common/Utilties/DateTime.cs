@@ -6,7 +6,7 @@ namespace NDecred.Common
     {
         public static long ToUnixTime(this DateTime dt)
         {
-            return ((DateTimeOffset)dt).ToUnixTimeSeconds();
+            return ((DateTimeOffset) dt).ToUnixTimeSeconds();
         }
 
         public static DateTime FromUnixTime(long unixTimeSeconds)

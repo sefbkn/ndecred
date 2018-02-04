@@ -8,10 +8,10 @@ namespace NDecred.Network
     //
     // This message has no payload.
 
-    public class MsgVerAck : NetworkMessage
+    public class MsgVerAck : NetworkEncodable
     {
         public override void Decode(BinaryReader reader)
-        {   
+        {
         }
 
         public override void Encode(BinaryWriter writer)
