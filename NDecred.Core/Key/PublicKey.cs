@@ -1,6 +1,5 @@
 using NDecred.Common;
 using NDecred.Common.Encoding;
-using NDecred.Core.Configuration.Network;
 using NDecred.Cryptography;
 
 namespace NDecred.Core

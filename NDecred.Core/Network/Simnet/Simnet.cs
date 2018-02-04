@@ -1,4 +1,4 @@
-namespace NDecred.Core.Configuration.Network.Simnet
+namespace NDecred.Core
 {
     public class Simnet : Network
     {

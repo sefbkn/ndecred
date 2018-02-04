@@ -1,4 +1,4 @@
-namespace NDecred.Core.Configuration.Network.Testnet
+namespace NDecred.Core
 {
     public class TestnetAddressPrefix : AddressPrefix
     {

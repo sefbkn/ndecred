@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using NDecred.Common;
 using NDecred.Common.Encoding;
-using NDecred.Core.Configuration.Network;
 using Xunit;
 
 namespace NDecred.Core.Tests

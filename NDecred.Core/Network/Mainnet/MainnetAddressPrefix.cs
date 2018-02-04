@@ -1,4 +1,4 @@
-namespace NDecred.Core.Configuration.Network.Mainnet
+namespace NDecred.Core
 {
     public class MainnetAddressPrefix : AddressPrefix
     {
