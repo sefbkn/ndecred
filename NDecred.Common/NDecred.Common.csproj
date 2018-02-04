@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\.nuget\packages\bouncycastle.netcore\1.8.1.3\lib\netstandard1.3\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BlakeSharp\BlakeSharp.csproj">
+      <Project>{4B26510B-A831-43D1-A915-5D1F36D6F522}</Project>
+      <Name>BlakeSharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

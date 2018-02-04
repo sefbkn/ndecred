@@ -1,3 +1,7 @@
+using NDecred.Common;
+using NDecred.Common.Encoding;
+using NDecred.Cryptography;
+
 namespace NDecred.Core
 {
     public class PublicKey

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NDecred.Common;
+using NDecred.Common.Encoding;
+using NDecred.Cryptography;
 
 namespace NDecred.Core
 {

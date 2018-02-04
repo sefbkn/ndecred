@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using NDecred.Common;
 
 namespace NDecred.Core
 {

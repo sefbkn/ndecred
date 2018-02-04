@@ -1,3 +1,5 @@
+using NDecred.Cryptography;
+
 namespace NDecred.Core
 {
     public class PrivateKey
