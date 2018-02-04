@@ -3,7 +3,7 @@ using System.Linq;
 using NDecred.Common;
 using Xunit;
 
-namespace NDecred.Core.Tests.Utilities
+namespace NDecred.Core.Tests
 {
     public class BinaryStreamExtensionsTests
     {

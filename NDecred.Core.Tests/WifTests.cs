@@ -1,3 +1,4 @@
+using NDecred.Core.Configuration.Network;
 using NDecred.Cryptography;
 using Xunit;
 

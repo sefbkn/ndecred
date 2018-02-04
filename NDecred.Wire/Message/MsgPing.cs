@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     public class Ping : NetworkEncodable
     {

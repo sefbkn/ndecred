@@ -1,9 +1,8 @@
 ﻿using System.Text;
 using NDecred.Common;
-using NDecred.Cryptography;
 using Xunit;
 
-namespace NDecred.Core.Tests.Cryptography
+namespace NDecred.Cryptography.Tests
 {
     public class ECSecurityServiceTests
     {

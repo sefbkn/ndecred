@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using NDecred.Common;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     public class MsgBlock : NetworkEncodable
     {

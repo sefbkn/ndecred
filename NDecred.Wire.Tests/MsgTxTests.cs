@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using NDecred.Common;
-using NDecred.Network;
+using NDecred.Wire;
 using Xunit;
 
-namespace NDecred.Core.Tests.Wire
+namespace NDecred.Network.Tests
 {
     public partial class MsgTxTests
     {

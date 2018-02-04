@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace NDecred.Network
+namespace NDecred.Wire.Types
 {
     public class Command : NetworkEncodable
     {

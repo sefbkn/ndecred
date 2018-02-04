@@ -2,7 +2,7 @@
 using System.IO;
 using NDecred.Common;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     public class MsgBlockHeader : NetworkEncodable
     {

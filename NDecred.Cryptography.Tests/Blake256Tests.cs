@@ -3,7 +3,7 @@ using BlakeSharp;
 using NDecred.Common;
 using Xunit;
 
-namespace NDecred.Core.Tests
+namespace NDecred.Cryptography.Tests
 {
     public class Blake256Tests
     {

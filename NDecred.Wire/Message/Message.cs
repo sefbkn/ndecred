@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
 using NDecred.Common;
+using NDecred.Wire.Types;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     public abstract class Message : NetworkEncodable
     {

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace NDecred.Core
+﻿namespace NDecred.Wire
 {
     public class TxOut
     {

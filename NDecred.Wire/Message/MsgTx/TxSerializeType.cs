@@ -1,4 +1,4 @@
-﻿namespace NDecred.Core
+﻿namespace NDecred.Wire
 {
     public enum TxSerializeType : uint
     {

@@ -1,4 +1,4 @@
-﻿namespace NDecred.Network
+﻿namespace NDecred.Wire
 {
     public enum CurrencyNet : uint
     {

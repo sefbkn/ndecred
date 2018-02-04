@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     // MsgVerAck defines a decred verack message which is used for a peer to
     // acknowledge a version message (MsgVersion) after it has used the information

@@ -1,6 +1,6 @@
-﻿using NDecred.Network;
+﻿using NDecred.Wire;
 
-namespace NDecred.Core.Tests.Wire
+namespace NDecred.Network.Tests
 {
     public partial class MsgTxTests
     {

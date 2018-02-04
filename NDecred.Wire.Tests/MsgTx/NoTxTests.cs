@@ -1,10 +1,10 @@
-﻿using NDecred.Network;
+﻿using NDecred.Wire;
 
-namespace NDecred.Core.Tests.Wire
+namespace NDecred.Network.Tests
 {
     public partial class MsgTxTests
     {
-        private class NoTxTests : MsgTxTestSubject
+        private class NoTxTests : MsgTxTests.MsgTxTestSubject
         {
             public override byte[] EncodedMessage => new byte[]
             {

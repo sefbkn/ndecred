@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace NDecred.Core
+namespace NDecred.Core.Configuration.Network
 {
     public abstract class AddressPrefix
     {

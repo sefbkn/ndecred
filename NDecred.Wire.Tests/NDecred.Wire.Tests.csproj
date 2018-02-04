@@ -15,9 +15,9 @@
       <Project>{254B5F1F-5E8B-4C77-8FAE-796526B07CD9}</Project>
       <Name>NDecred.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NDecred.Network\NDecred.Network.csproj">
-      <Project>{F041C01B-D462-4945-9F94-9690FD438C17}</Project>
-      <Name>NDecred.Network</Name>
+    <ProjectReference Include="..\NDecred.Wire\NDecred.Wire.csproj">
+      <Project>{45E81B62-8910-4237-A6C0-84EE3DD5C950}</Project>
+      <Name>NDecred.Wire</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using NDecred.Common;
-using NDecred.Core;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     public partial class MsgTx
     {

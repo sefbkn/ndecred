@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDecred.Core
+namespace NDecred.Wire
 {
     public enum TxTree : byte
     {

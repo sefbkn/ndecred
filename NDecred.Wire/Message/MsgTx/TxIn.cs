@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using NDecred.Common;
 
-namespace NDecred.Core
+namespace NDecred.Wire
 {
     public class TxIn
     {

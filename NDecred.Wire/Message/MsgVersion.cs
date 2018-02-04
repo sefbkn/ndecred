@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
 using NDecred.Common;
+using NDecred.Wire.Types;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     // MsgVersion implements the Message interface and represents a decred version
     // message.  It is used for a peer to advertise itself as soon as an outbound

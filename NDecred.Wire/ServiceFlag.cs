@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDecred.Network
+namespace NDecred.Wire
 {
     [Flags]
     public enum ServiceFlag : ulong

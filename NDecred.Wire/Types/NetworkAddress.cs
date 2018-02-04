@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using NDecred.Common;
 
-namespace NDecred.Network
+namespace NDecred.Wire.Types
 {
     // NetAddress defines information about a peer on the network including the time
     // it was last seen, the services it supports, its IP address, and port.
