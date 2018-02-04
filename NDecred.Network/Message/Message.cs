@@ -29,8 +29,8 @@ namespace NDecred.Network
         {
             CurrencyNetwork = (CurrencyNet) reader.ReadUInt32();
 
-            var commandBytes = reader.ReadBytes(Command.CommandSizeBytes);
-            Command = Command.Decode(commandBytes);
+            Command = new Command();
+            Command.Decode(reader);
 
             PayloadLength = reader.ReadInt32();
             Checksum = reader.ReadBytes(ChecksumLengthBytes);

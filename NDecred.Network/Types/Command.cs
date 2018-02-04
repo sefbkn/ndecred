@@ -1,9 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 
 namespace NDecred.Network
 {
-    public class Command
+    public class Command : NetworkEncodable
     {
         public static readonly int CommandSizeBytes = 12;
 
@@ -33,6 +34,7 @@ namespace NDecred.Network
         public static readonly Command SendHeaders = new Command("sendheaders");
         public static readonly Command FeeFilter = new Command("feefilter");
 
+        public Command(){}
         private Command(string name)
         {
             Name = name;
@@ -67,14 +69,12 @@ namespace NDecred.Network
             FeeFilter
         };
 
-        public string Name { get; }
+        public string Name { get; set; }
 
-        public static Command Decode(byte[] bytes)
+        public override void Decode(BinaryReader reader)
         {
-            if (bytes.Length != CommandSizeBytes)
-                throw new Exception(
-                    $"Expected command bytes to be exactly equal to {CommandSizeBytes} bytes.  Actual size {bytes.Length}");
-
+            var bytes = reader.ReadBytes(CommandSizeBytes);
+            
             // The name should only consist of alphanumeric characters.
             var chars = bytes
                 .Select(b => (char) b)
@@ -84,23 +84,23 @@ namespace NDecred.Network
             var commandName = new string(chars);
             foreach (var cmd in All)
                 if (cmd.Name == commandName)
-                    return cmd;
+                    Name = cmd.Name;
 
             throw new Exception($"Unrecogized command {commandName}");
         }
 
-        public byte[] Encode()
+        public override void Encode(BinaryWriter writer)
         {
-            var bytes = new byte[CommandSizeBytes];
+            var bytesOut = new byte[CommandSizeBytes];
 
-            if (Name.Length > bytes.Length)
+            if (Name.Length > bytesOut.Length)
                 throw new Exception(
-                    $"Command message name is larger that the maximum allowed size {CommandSizeBytes} bytes");
+                    $"Command name is larger that the maximum allowed size {CommandSizeBytes} bytes");
 
             for (var i = 0; i < Name.Length; i++)
-                bytes[i] = (byte) Name[i];
+                bytesOut[i] = (byte) Name[i];
 
-            return bytes;
+            writer.Write(bytesOut);
         }
     }
 }
