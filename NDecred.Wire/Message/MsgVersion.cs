@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using NDecred.Common;
-using NDecred.Wire.Types;
 
 namespace NDecred.Wire
 {

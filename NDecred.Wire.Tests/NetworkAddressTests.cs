@@ -2,7 +2,6 @@
 using System.Linq;
 using NDecred.Common;
 using NDecred.Wire;
-using NDecred.Wire.Types;
 using Xunit;
 
 namespace NDecred.Network.Tests
