@@ -4,7 +4,7 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    public partial class MsgTx : NetworkEncodable
+    public partial class MsgTx : Message
     {
         public const int MaxMessagePayload = 1024 * 1024 * 32;
         public const int MinTxInPayload = 11 + 32;
@@ -114,5 +114,7 @@ namespace NDecred.Wire
 
             return Hash.BLAKE256(bytes);
         }
+
+        public override MsgCommand Command => MsgCommand.Tx;
     }
 }

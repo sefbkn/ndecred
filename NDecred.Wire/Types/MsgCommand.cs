@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NDecred.Wire
 {
-    public class MsgNotImplemented : NetworkEncodable
+    public class MsgNotImplemented : Message
     {
         public override void Decode(BinaryReader reader)
         {
@@ -15,27 +15,29 @@ namespace NDecred.Wire
         {
             throw new NotImplementedException();
         }
+
+        public override MsgCommand Command => throw new NotImplementedException();
     }
     
     public class MsgCommand : NetworkEncodable
     {
-        private Func<NetworkEncodable> _messageFactory;
-        public static readonly int CommandSizeBytes = 12;
+        public const int CommandSizeBytes = 12;
 
+        public static readonly MsgCommand Addr = new MsgCommand("addr", () => new MsgAddr());
+        public static readonly MsgCommand GetAddr = new MsgCommand("getaddr", () => new MsgGetAddr());
+        public static readonly MsgCommand Ping = new MsgCommand("ping", () => new MsgPing());
+        public static readonly MsgCommand Pong = new MsgCommand("pong", () => new MsgPong());
+        public static readonly MsgCommand Tx = new MsgCommand("tx", () => new MsgTx());
         public static readonly MsgCommand Version = new MsgCommand("version", () => new MsgVersion());
         public static readonly MsgCommand VerAck = new MsgCommand("verack", () => new MsgVerAck());
-        public static readonly MsgCommand GetAddr = new MsgCommand("getaddr", () => new MsgNotImplemented());
-        public static readonly MsgCommand Addr = new MsgCommand("addr", () => new MsgNotImplemented());
+
         public static readonly MsgCommand GetBlocks = new MsgCommand("getblocks", () => new MsgNotImplemented());
         public static readonly MsgCommand Inv = new MsgCommand("inv", () => new MsgNotImplemented());
         public static readonly MsgCommand GetData = new MsgCommand("getdata", () => new MsgNotImplemented());
         public static readonly MsgCommand NotFound = new MsgCommand("notfound", () => new MsgNotImplemented());
         public static readonly MsgCommand Block = new MsgCommand("block", () => new MsgNotImplemented());
-        public static readonly MsgCommand Tx = new MsgCommand("tx", () => new MsgTx());
         public static readonly MsgCommand GetHeaders = new MsgCommand("getheaders", () => new MsgNotImplemented());
         public static readonly MsgCommand Headers = new MsgCommand("headers", () => new MsgNotImplemented());
-        public static readonly MsgCommand Ping = new MsgCommand("ping", () => new MsgPing());
-        public static readonly MsgCommand Pong = new MsgCommand("pong", () => new MsgPong());
         public static readonly MsgCommand Alert = new MsgCommand("alert", () => new MsgNotImplemented());
         public static readonly MsgCommand MemPool = new MsgCommand("mempool", () => new MsgNotImplemented());
         public static readonly MsgCommand MiningState = new MsgCommand("miningstate", () => new MsgNotImplemented());
@@ -48,8 +50,10 @@ namespace NDecred.Wire
         public static readonly MsgCommand SendHeaders = new MsgCommand("sendheaders", () => new MsgNotImplemented());
         public static readonly MsgCommand FeeFilter = new MsgCommand("feefilter", () => new MsgNotImplemented());
 
+        private Func<Message> _messageFactory;
+
         public MsgCommand() { }
-        private MsgCommand(string name, Func<NetworkEncodable> messageFactory)
+        private MsgCommand(string name, Func<Message> messageFactory)
         {
             _messageFactory = messageFactory;
             Name = name;
@@ -86,7 +90,7 @@ namespace NDecred.Wire
 
         public string Name { get; set; }
 
-        public NetworkEncodable CreateMessage()
+        public Message CreateMessage()
         {
             return _messageFactory();
         }

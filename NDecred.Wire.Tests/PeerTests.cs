@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using NDecred.Wire;
@@ -11,9 +12,15 @@ namespace NDecred.Network.Tests
         [Fact]
         public async Task Connect_AttemptsToInitiateConnectionWorkflow()
         {
-            using (var peer = new Peer())
+            ServicePointManager.DefaultConnectionLimit = 200;
+            
+            using (var server = new Server())
             {
-                await peer.ConnectAsync();
+                var ip = new IPAddress(new byte[] {127, 0, 0, 1});
+                var endpoint = new IPEndPoint(ip, 19108);
+                
+                var peer = await server.ConnectToPeerAsync(endpoint);
+                await peer.SendMessageAsync(new MsgGetAddr());
                 await Task.Delay(-1);                
             }
         }

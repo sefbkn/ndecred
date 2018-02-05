@@ -4,7 +4,7 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    public class MsgBlockHeader : NetworkEncodable
+    public class BlockHeader : NetworkEncodable
     {
         // const MaxBlockHeaderPayload = 84 + (chainhash.HashSize * 3)
         // 180 bytes.
@@ -15,7 +15,7 @@ namespace NDecred.Wire
         // blockHeaderLen
         public const int Length = 180;
 
-        public MsgBlockHeader()
+        public BlockHeader()
         {
             PreviousBlockHash = new byte[0];
             MerkleRoot = new byte[0];

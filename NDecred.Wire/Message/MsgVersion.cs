@@ -11,7 +11,7 @@ namespace NDecred.Wire
     // message of its own containing the negotiated values followed by a verack
     // message (MsgVerAck).  This exchange must take place before any further
     // communication is allowed to proceed.
-    public class MsgVersion : NetworkEncodable
+    public class MsgVersion : Message
     {
         public const int MaxUserAgentLen = 256;
         public const string DefaultUserAgent = "/ndecred:0.1.0/";
@@ -84,5 +84,7 @@ namespace NDecred.Wire
             writer.Write(LastBlock);
             writer.Write(!DisableRelayTx);
         }
+        
+        public override MsgCommand Command => MsgCommand.Version;
     }
 }

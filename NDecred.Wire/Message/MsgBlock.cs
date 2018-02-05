@@ -6,14 +6,14 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    public class MsgBlock : NetworkEncodable
+    public class MsgBlock : Message
     {
         public MsgBlock()
         {
-            Header = new MsgBlockHeader();
+            Header = new BlockHeader();
         }
 
-        public MsgBlockHeader Header { get; set; }
+        public BlockHeader Header { get; set; }
         public MsgTx[] Transactions { get; set; }
         public MsgTx[] StakeTransactions { get; set; }
 
@@ -59,5 +59,7 @@ namespace NDecred.Wire
             foreach (var tx in StakeTransactions)
                 tx.Encode(writer);
         }
+        
+        public override MsgCommand Command => MsgCommand.Block;
     }
 }

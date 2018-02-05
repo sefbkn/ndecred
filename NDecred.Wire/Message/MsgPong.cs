@@ -2,7 +2,7 @@
 
 namespace NDecred.Wire
 {
-    public class MsgPong : NetworkEncodable
+    public class MsgPong : Message
     {
         public ulong Nonce { get; set; }
 
@@ -15,5 +15,7 @@ namespace NDecred.Wire
         {
             writer.Write(Nonce);
         }
+        
+        public override MsgCommand Command => MsgCommand.Pong;
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
@@ -17,118 +18,92 @@ namespace NDecred.Wire
     /// </summary>
     public class Peer : IDisposable
     {
-        private CurrencyNet CurrencyNet;
-        private TcpClient _client;
+        private readonly CurrencyNet _currencyNet;
+        private readonly TcpClient _client;
         private Task _backgroundReadTask;
-        
-        public IPEndPoint IpEndPoint { get; }
-        
-        public Peer()
+                                
+        public Peer(TcpClient tcpClient, CurrencyNet currencyNet)
         {
-            CurrencyNet = CurrencyNet.SimNet;
-            IpEndPoint = new IPEndPoint(new IPAddress(new byte[]{127,0,0,1}), 18555);
+            _client = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+            _currencyNet = currencyNet;
         }
 
-        public async Task ConnectAsync()
+        public delegate void EventHandler<in TSender, in TArgs>(TSender sender, TArgs e) where TArgs : EventArgs;
+        public event EventHandler<Peer, PeerMessageReceivedArgs> MessageReceived;
+        
+        /// <summary>
+        /// Asynchronously establishes a connection with the peer.  The version is sent
+        /// </summary>
+        /// <returns></returns>
+        public async Task ConnectAsync(IPEndPoint ipEndPoint)
         {
-            if (_client != null && _client.Connected)
+            if (_client.Connected)
                 return;
 
-            _client = new TcpClient();
-            await _client.ConnectAsync(IpEndPoint.Address, IpEndPoint.Port);
+            await _client.ConnectAsync(ipEndPoint.Address, ipEndPoint.Port);
+
+            // Before any other messages can be processed, need to send version
+            await SendMessageAsync(new MsgVersion { ProtocolVersion = 1});
             
             // Fire off background task to process incoming requests
-            _backgroundReadTask = new Task(HandleIncomingMessages, TaskCreationOptions.LongRunning);
-            _backgroundReadTask.ConfigureAwait(false);
+            _backgroundReadTask = new Task(ReadIncomingMessages, TaskCreationOptions.LongRunning);
             _backgroundReadTask.Start();
-            
-            SendVersion();
         }
         
-        private void SendVersion()
-        {
-            using (var writer = new BinaryWriter(_client.GetStream(), Encoding.Default, true))
-            {
-                var version = new MsgVersion
-                {
-                    ProtocolVersion = 1,
-                };
-
-                var versionBytes = version.Encode();
-                var header = new MessageHeader(CurrencyNet.SimNet, MsgCommand.Version, versionBytes);
-                var headerBytes = header.Encode();
-                writer.Write(headerBytes.Concat(versionBytes).ToArray());
-                writer.Flush();
-            }
-        }
-
         /// <summary>
         /// Blocks until data is received from the peer represented by this instance.
-        /// Messages are parsed and yielded as soon as they are available on the wire.
+        /// Messages are parsed as soon as they are available on the wire, and broadcast
+        /// via the MessageReceived event.
         /// </summary>
-        /// <returns>a blocking enumerable that can be iterated over</returns>
-        private IEnumerable<(MessageHeader header, NetworkEncodable body)> IncomingMessages()
+        private void ReadIncomingMessages()
         {
             var stream = _client.GetStream();
             var reader = new BinaryReader(stream);
             
             while (_client.Connected)
             {
-                var msgHeader = new MessageHeader();
-                msgHeader.Decode(reader);
+                var header = new MessageHeader();
+                header.Decode(reader);
 
-                var message = msgHeader.Command.CreateMessage();
+                var message = header.Command.CreateMessage();
+                message.ProtocolVersion = 1;
                 message.Decode(reader);
-
-                yield return (msgHeader, message);
+                
+                OnMessageReceived(new PeerMessageReceivedArgs(header, message));
             }
         }
 
         /// <summary>
-        /// Waits for incoming messages to be available, and handles each one based on its type.
+        /// Sends a message to the peer represented by this instance.
+        /// 
+        /// A message header is created for the message, internally, and also sent with the provided message
         /// </summary>
-        private void HandleIncomingMessages()
+        /// <param name="message"></param>
+        public async Task SendMessageAsync(Message message)
         {
-            foreach (var message in IncomingMessages())
+            using(var ms = new MemoryStream())
+            using (var writer = new BinaryWriter(ms))
             {
-                switch (message.body)
-                {
-                    case MsgPing ping:
-                        OnPing(ping);
-                        break;
-                    case MsgPong pong:
-                        break;
-                    case MsgVerAck verAck:
-                        break;
-                    case MsgVersion version:
-                        break;
-                    case MsgReject reject:
-                        break;
-                    case MsgTx tx:
-                        break;
-                    case MsgBlock block:
-                        break;
-                    case MsgBlockHeader blockHeader:
-                        break;
-                }                
-            }
-        }
-
-        private void OnPing(MsgPing ping)
-        {
-            var stream = _client.GetStream();
-            var writer = new BinaryWriter(stream);
+                var messageBytes = message.Encode();
+                var messageHeader = new MessageHeader(_currencyNet, message.Command, messageBytes);
+                var messageHeaderBytes = messageHeader.Encode();
             
-            var msgPong = new MsgPong { Nonce = ping.Nonce };
-            var msgHeader = new MessageHeader(CurrencyNet, MsgCommand.Pong, msgPong.Encode());
-            msgHeader.Encode(writer);
-            msgPong.Encode(writer);
-            writer.Flush();
+                writer.Write(messageHeaderBytes.Concat(messageBytes).ToArray());
+                writer.Flush();
+
+                var bytes = ms.ToArray();
+                await _client.GetStream().WriteAsync(bytes, 0, bytes.Length);
+            }
         }
 
         public void Dispose()
         {
             _client?.Dispose();
+        }
+
+        protected virtual void OnMessageReceived(PeerMessageReceivedArgs e)
+        {
+            MessageReceived?.Invoke(this, e);
         }
     }
 }
