@@ -8,6 +8,8 @@ namespace NDecred.Network.Tests
 {
     public class NetworkAddressTests
     {
+        // Test data from dcrd
+        // https://github.com/decred/dcrd/blob/master/wire/netaddress_test.go
         private readonly byte[] baseNetAddrEncoded =
         {
             0x29, 0xab, 0x5f, 0x49, // Timestamp
@@ -29,7 +31,7 @@ namespace NDecred.Network.Tests
             Assert.Equal(timestamp.Date, new DateTime(2009, 1, 3));
             Assert.Equal(timestamp, netAddr.Timestamp);
 
-            Assert.Equal(netAddr.Services, ServiceFlag.SFNodeNetwork);
+            Assert.Equal(netAddr.Services, ServiceFlag.NodeNetwork);
             Assert.Equal(netAddr.Port, 8333);
 
             var bytes = netAddr.Encode();

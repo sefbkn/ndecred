@@ -20,18 +20,5 @@ namespace NDecred.Wire
         public uint BlockHeight { get; set; }
         public uint BlockIndex { get; set; }
         public byte[] SignatureScript { get; set; }
-
-
-        public void WriteTxInWitnessValueSigning(BinaryWriter writer)
-        {
-            writer.Write(ValueIn);
-            WriteSignatureScript(writer);
-        }
-
-        public void WriteSignatureScript(BinaryWriter writer)
-        {
-            writer.WriteVariableLengthInteger((ulong) SignatureScript.Length);
-            writer.Write(SignatureScript);
-        }
     }
 }

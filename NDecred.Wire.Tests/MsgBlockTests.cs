@@ -7,6 +7,8 @@ namespace NDecred.Network.Tests
 {
     public class MsgBlockTests
     {
+	    // Test data from dcrd
+	    // https://github.com/decred/dcrd/blob/master/wire/msgblock_test.go
 	    private readonly byte[] _testBlockBytes = 
 	    {
 		    // Begin block header

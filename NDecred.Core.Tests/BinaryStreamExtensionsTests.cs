@@ -41,15 +41,19 @@ namespace NDecred.Core.Tests
             var tests = new byte[] {0xFD, 0xFE, 0xFF};
 
             foreach (var test in tests)
+            {
                 using (var ms = new MemoryStream())
                 using (var bw = new BinaryWriter(ms))
                 {
                     bw.WriteVariableLengthInteger(test);
 
+                    // Since data should be encoded as a ushort,
+                    // the prefix should be 0xFD
                     var expectedSequence = new byte[] {0xFD, test, 0};
                     var writtenBytes = ms.ToArray();
                     Assert.Equal(expectedSequence, writtenBytes);
                 }
+            }
         }
     }
 }

@@ -6,6 +6,8 @@ namespace NDecred.Network.Tests
     {
         private class NoTxTests : MsgTxTests.MsgTxTestSubject
         {
+            // Uses test data from dcrd
+            // https://github.com/decred/dcrd/blob/master/wire/msgtx_test.go
             public override byte[] EncodedMessage => new byte[]
             {
                 0x01, 0x00, 0x00, 0x00, // Version
@@ -15,7 +17,6 @@ namespace NDecred.Network.Tests
                 0x00, 0x00, 0x00, 0x00, // Expiry
                 0x00 // Varint for number of input signatures
             };
-
 
             public override MsgTx Message => new MsgTx
             {

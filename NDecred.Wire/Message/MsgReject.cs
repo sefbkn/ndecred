@@ -3,16 +3,20 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    // These constants define the various supported reject codes.
-
 	public class MsgReject : Message
     {
 	    public ulong MaxMessagePayload = (1024 * 1024 * 32);
 	    
 	    // The message that was rejected
 	    public string RejectedCommand { get; set; }
+	    
+	    // The code representing the reason for rejection
 	    public RejectCode Code { get; set; }
+	    
+	    // Human-friendly reason for rejection
 	    public string Reason { get; set; }
+	    
+	    // Hash of block or transaction rejected. Only for MsgBlock + MsgTx rejection reasons.
 	    public byte[] Hash { get; set; }
 
 	    public MsgReject()
@@ -27,7 +31,6 @@ namespace NDecred.Wire
 	        Reason = reader.ReadVariableLengthString(MaxMessagePayload);
 
 	        var msgCommand = MsgCommand.Find(RejectedCommand);
-
 	        if (msgCommand == MsgCommand.Block || msgCommand == MsgCommand.Tx)
 	        {
 		        Hash = reader.ReadBytes(32);
@@ -36,7 +39,15 @@ namespace NDecred.Wire
 
         public override void Encode(BinaryWriter writer)
         {
-            throw new System.NotImplementedException();
+	        writer.WriteVariableLengthString(RejectedCommand);
+	        writer.Write((byte) Code);
+	        writer.WriteVariableLengthString(Reason);
+	        
+	        var msgCommand = MsgCommand.Find(RejectedCommand);
+	        if (msgCommand == MsgCommand.Block || msgCommand == MsgCommand.Tx)
+	        {
+		        writer.Write(Hash);
+	        }
         }
 	    
 	    public override MsgCommand Command => MsgCommand.Reject;

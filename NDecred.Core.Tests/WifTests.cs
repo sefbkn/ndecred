@@ -8,6 +8,8 @@ namespace NDecred.Core.Tests
         [Fact]
         public void Key_GenerateWif_ReturnsExpectedWifForNetworkAndSignatureType()
         {
+            // Test data from dcrd
+            // https://github.com/decred/dcrd/blob/master/dcrutil/wif_test.go
             var keys = new[]
             {
                 // ECTypeSecp256k1

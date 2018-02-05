@@ -12,7 +12,6 @@ namespace NDecred.Wire
             Header = header ?? throw new ArgumentNullException(nameof(header));
             Message = message ?? throw new ArgumentNullException(nameof(message));
         }
-
     }
     
     public class PeerMessageReceivedArgs : PeerMessageReceivedArgs<Message>

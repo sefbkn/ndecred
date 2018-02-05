@@ -5,8 +5,6 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
-    // NetAddress defines information about a peer on the network including the time
-    // it was last seen, the services it supports, its IP address, and port.
     public class NetworkAddress : NetworkEncodable
     {
         private readonly bool _useTimestamp;

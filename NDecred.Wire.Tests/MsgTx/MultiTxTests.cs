@@ -6,6 +6,8 @@ namespace NDecred.Network.Tests
     {
         private class MultiTxTestSubject : MsgTxTestSubject
         {
+            // Uses test data from dcrd
+            // https://github.com/decred/dcrd/blob/master/wire/msgtx_test.go
             public override byte[] EncodedMessage => new byte[]
             {
                 0x01, 0x00, 0x00, 0x00, // Version [0]

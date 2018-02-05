@@ -44,7 +44,7 @@ namespace NDecred.Wire
         
         /// <summary>
         /// Blocks until data is received from the peer represented by this instance.
-        /// Messages are parsed as soon as they are available on the wire, and broadcast
+        /// Messages are parsed as soon as they are available on the wire, and broadcast synchronously
         /// via the MessageReceived event.
         /// </summary>
         private void ReadIncomingMessages()

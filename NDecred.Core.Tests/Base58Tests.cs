@@ -9,6 +9,8 @@ namespace NDecred.Core.Tests
     {
         private readonly Base58Check _subject = new Base58Check(Hash.BLAKE256D);
 
+        // Test data from dcrd
+        // https://github.com/decred/dcrd/blob/master/dcrutil/address_test.go
         private readonly PublicKeyHash[] _p2pk =
         {
             new PublicKeyHash

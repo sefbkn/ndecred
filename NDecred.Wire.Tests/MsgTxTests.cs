@@ -7,6 +7,45 @@ namespace NDecred.Network.Tests
 {
     public partial class MsgTxTests
     {
+        // Uses test data from dcrd
+        // https://github.com/decred/dcrd/blob/master/wire/msgtx_test.go
+        
+        string expectedHash = "4538fc1618badd058ee88fd020984451024858796be0a1ed111877f887e1bd53";
+        TxIn txIn = new TxIn
+        {
+            PreviousOutPoint = new OutPoint
+            {
+                Hash = new byte[32],
+                Index = 0xffffffff,
+                Tree = (byte) TxTree.TxTreeRegular
+            },
+            Sequence = 0xffffffff,
+            ValueIn = 5000000000,
+            BlockHeight = 0x3F3F3F3F,
+            BlockIndex = 0x2E2E2E2E,
+            SignatureScript = new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
+        };
+
+        TxOut txOut = new TxOut(
+            5000000000,
+            0xf0f0,
+            new byte[]
+            {
+                0x41, // OP_DATA_65
+                0x04, 0xd6, 0x4b, 0xdf, 0xd0, 0x9e, 0xb1, 0xc5,
+                0xfe, 0x29, 0x5a, 0xbd, 0xeb, 0x1d, 0xca, 0x42,
+                0x81, 0xbe, 0x98, 0x8e, 0x2d, 0xa0, 0xb6, 0xc1,
+                0xc6, 0xa5, 0x9d, 0xc2, 0x26, 0xc2, 0x86, 0x24,
+                0xe1, 0x81, 0x75, 0xe8, 0x51, 0xc9, 0x6b, 0x97,
+                0x3d, 0x81, 0xb0, 0x1c, 0xc3, 0x1f, 0x04, 0x78,
+                0x34, 0xbc, 0x06, 0xd6, 0xd6, 0xed, 0xf6, 0x20,
+                0xd1, 0x84, 0x24, 0x1a, 0x6a, 0xed, 0x8b, 0x63,
+                0xa6, // 65-byte signature
+                0xac // OP_CHECKSIG
+            }
+        );
+
+        
 	    /// <summary>
 	    ///     Template to define required values for each test
 	    /// </summary>
@@ -19,41 +58,6 @@ namespace NDecred.Network.Tests
         [Fact]
         public void GetHash_GivenTestObjectWithKnownHash_ReturnsExpectedHash()
         {
-            var expectedHash = "4538fc1618badd058ee88fd020984451024858796be0a1ed111877f887e1bd53";
-            var txIn = new TxIn
-            {
-                PreviousOutPoint = new OutPoint
-                {
-                    Hash = new byte[32],
-                    Index = 0xffffffff,
-                    Tree = (byte) TxTree.TxTreeRegular
-                },
-                Sequence = 0xffffffff,
-                ValueIn = 5000000000,
-                BlockHeight = 0x3F3F3F3F,
-                BlockIndex = 0x2E2E2E2E,
-                SignatureScript = new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
-            };
-
-            var txOut = new TxOut(
-                5000000000,
-                0xf0f0,
-                new byte[]
-                {
-                    0x41, // OP_DATA_65
-                    0x04, 0xd6, 0x4b, 0xdf, 0xd0, 0x9e, 0xb1, 0xc5,
-                    0xfe, 0x29, 0x5a, 0xbd, 0xeb, 0x1d, 0xca, 0x42,
-                    0x81, 0xbe, 0x98, 0x8e, 0x2d, 0xa0, 0xb6, 0xc1,
-                    0xc6, 0xa5, 0x9d, 0xc2, 0x26, 0xc2, 0x86, 0x24,
-                    0xe1, 0x81, 0x75, 0xe8, 0x51, 0xc9, 0x6b, 0x97,
-                    0x3d, 0x81, 0xb0, 0x1c, 0xc3, 0x1f, 0x04, 0x78,
-                    0x34, 0xbc, 0x06, 0xd6, 0xd6, 0xed, 0xf6, 0x20,
-                    0xd1, 0x84, 0x24, 0x1a, 0x6a, 0xed, 0x8b, 0x63,
-                    0xa6, // 65-byte signature
-                    0xac // OP_CHECKSIG
-                }
-            );
-
             var msgTx = new MsgTx
             {
                 Version = 1,

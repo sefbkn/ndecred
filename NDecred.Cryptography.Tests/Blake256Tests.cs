@@ -10,6 +10,8 @@ namespace NDecred.Cryptography.Tests
         [Fact]
         public void Blake256_ComputeHash_ReturnsExpectedHash()
         {
+            // Test data from dcrd
+            // https://github.com/decred/dcrd/blob/master/chaincfg/chainhash/hashfuncs_test.go
             var hashTests = new[]
             {
                 new {expected = "716f6e863f744b9ac22c97ec7b76ea5f5908bc5b2f67c61510bfc4751384ea7a", input = ""},

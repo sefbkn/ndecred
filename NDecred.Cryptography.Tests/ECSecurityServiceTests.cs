@@ -6,6 +6,8 @@ namespace NDecred.Cryptography.Tests
 {
     public class ECSecurityServiceTests
     {
+        // Uses test data from dcrd
+        // https://github.com/decred/dcrd/blob/master/dcrec/secp256k1/example_test.go
         private readonly byte[] _message =
             Encoding.UTF8.GetBytes("test message");
 

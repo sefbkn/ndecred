@@ -32,7 +32,7 @@ namespace NDecred.Wire
         }
 
         /// <summary>
-        /// Fired whenever a fully parsed message is received from a peer.
+        /// Called whenever a fully parsed message is received from a peer.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -66,11 +66,12 @@ namespace NDecred.Wire
 
         public void Dispose()
         {
+            // Unsubscribe from peer events
             foreach (var peer in Peers)
-            {
                 peer.MessageReceived -= PeerMessageReceived;
+
+            foreach (var peer in Peers)
                 peer.Dispose();
-            }                
         }
     }
 }

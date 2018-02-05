@@ -2,13 +2,13 @@
 {
     public enum RejectCode
     {
-        RejectMalformed       = 0x01,
-        RejectInvalid         = 0x10,
-        RejectObsolete        = 0x11,
-        RejectDuplicate       = 0x12,
-        RejectNonstandard     = 0x40,
-        RejectDust            = 0x41,
-        RejectInsufficientFee = 0x42,
-        RejectCheckpoint      = 0x43
+        Malformed       = 0x01,
+        Invalid         = 0x10,
+        Obsolete        = 0x11,
+        Duplicate       = 0x12,
+        Nonstandard     = 0x40,
+        Dust            = 0x41,
+        InsufficientFee = 0x42,
+        Checkpoint      = 0x43
     }
 }
