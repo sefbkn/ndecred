@@ -2,8 +2,18 @@
 
 namespace NDecred.Wire
 {
+    /// <summary>
+    /// Represents a message that can be sent / received over a network stream.
+    /// </summary>
     public abstract class NetworkEncodable
     {
+        public int ProtocolVersion { get; set; }
+
+        protected NetworkEncodable()
+        {
+            ProtocolVersion = 1;
+        }
+        
         /// <summary>
         ///     Populates the current instances with the encoded data supplied as a byte[]
         /// </summary>

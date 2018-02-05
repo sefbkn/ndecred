@@ -9,6 +9,14 @@ namespace NDecred.Wire
     // it was last seen, the services it supports, its IP address, and port.
     public class NetworkAddress : NetworkEncodable
     {
+        private readonly bool _useTimestamp;
+
+        public NetworkAddress(bool useTimestamp)
+        {
+            _useTimestamp = useTimestamp;
+            Ip = new byte[16];
+        }
+        
         public DateTime Timestamp { get; set; }
         public ServiceFlag Services { get; set; }
         public byte[] Ip { get; set; }
@@ -21,7 +29,11 @@ namespace NDecred.Wire
 
         public override void Decode(BinaryReader reader)
         {
-            Timestamp = DateTimeExtensions.FromUnixTime(reader.ReadUInt32());
+            if (_useTimestamp)
+            {
+                Timestamp = DateTimeExtensions.FromUnixTime(reader.ReadUInt32());                
+            }
+            
             Services = (ServiceFlag) reader.ReadUInt64();
             Ip = reader.ReadBytes(16);
             Port = DecodePort(reader);
@@ -29,7 +41,11 @@ namespace NDecred.Wire
 
         public override void Encode(BinaryWriter writer)
         {
-            writer.Write((uint) Timestamp.ToUnixTime());
+            if (_useTimestamp)
+            {
+                writer.Write((uint) Timestamp.ToUnixTime());                
+            }
+            
             writer.Write((ulong) Services);
 
             EncodeIpAddress(writer);

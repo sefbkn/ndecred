@@ -8,7 +8,7 @@ namespace NDecred.Wire
     //
     // This message has no payload.
 
-    public class MsgVerAck : NetworkEncodable
+    public class MsgVerAck : Message
     {
         public override void Decode(BinaryReader reader)
         {
@@ -17,5 +17,7 @@ namespace NDecred.Wire
         public override void Encode(BinaryWriter writer)
         {
         }
+        
+        public override MsgCommand Command => MsgCommand.VerAck;
     }
 }

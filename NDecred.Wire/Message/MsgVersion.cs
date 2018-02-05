@@ -11,7 +11,7 @@ namespace NDecred.Wire
     // message of its own containing the negotiated values followed by a verack
     // message (MsgVerAck).  This exchange must take place before any further
     // communication is allowed to proceed.
-    public class MsgVersion : NetworkEncodable
+    public class MsgVersion : Message
     {
         public const int MaxUserAgentLen = 256;
         public const string DefaultUserAgent = "/ndecred:0.1.0/";
@@ -19,8 +19,8 @@ namespace NDecred.Wire
         public MsgVersion()
         {
             UserAgent = DefaultUserAgent;
-            AddrMe = new NetworkAddress();
-            AddrYou = new NetworkAddress();
+            AddrMe = new NetworkAddress(false);
+            AddrYou = new NetworkAddress(false);
         }
 
         // Version of the protocol the node is using.
@@ -58,10 +58,10 @@ namespace NDecred.Wire
             Services = (ServiceFlag) reader.ReadUInt64();
             Timestamp = DateTimeExtensions.FromUnixTime(reader.ReadInt64());
 
-            AddrYou = new NetworkAddress();
+            AddrYou = new NetworkAddress(false);
             AddrYou.Decode(reader);
 
-            AddrMe = new NetworkAddress();
+            AddrMe = new NetworkAddress(false);
             AddrMe.Decode(reader);
 
             Nonce = reader.ReadUInt64();
@@ -84,5 +84,7 @@ namespace NDecred.Wire
             writer.Write(LastBlock);
             writer.Write(!DisableRelayTx);
         }
+        
+        public override MsgCommand Command => MsgCommand.Version;
     }
 }

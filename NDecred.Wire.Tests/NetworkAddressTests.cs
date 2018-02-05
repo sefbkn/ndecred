@@ -20,7 +20,7 @@ namespace NDecred.Network.Tests
         [Fact]
         public void EncodeDecode_ReturnsInputDataExactly()
         {
-            var netAddr = new NetworkAddress();
+            var netAddr = new NetworkAddress(true);
             netAddr.Decode(baseNetAddrEncoded);
 
             var unixTs = BitConverter.ToInt32(new byte[] {0x29, 0xab, 0x5f, 0x49}, 0);
