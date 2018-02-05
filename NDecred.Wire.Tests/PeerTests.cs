@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
+using NDecred.Common;
 using NDecred.Wire;
 using Xunit;
 
@@ -26,8 +28,8 @@ namespace NDecred.Network.Tests
             _writeStream = new MemoryStream();
             _readStream = new MemoryStream();
             
-            _binaryReader = new BinaryReader(_readStream);
             _binaryWriter = new BinaryWriter(_writeStream);
+            _binaryReader = new BinaryReader(_readStream);
             
             var netClientMock = new Mock<INetworkClient>();
             netClientMock.Setup(m => m.ConnectAsync()).Returns(Task.CompletedTask);
@@ -55,6 +57,36 @@ namespace NDecred.Network.Tests
             var actualBytesWritten = _writeStream.ToArray();
             Assert.Equal(expected.Length, actualBytesWritten.Length);
             Assert.Equal(actualBytesWritten, (IEnumerable<byte>)expected);
+        }
+
+        [Fact]
+        public async void New_AfterConnecting_FiresMessageReceivedWhenDataAvailable()
+        {
+            var versionMessage = new MsgVersion(){ProtocolVersion = 1};
+            var versionMessageHeader = new MessageHeader(_currencyNet, MsgCommand.Version, versionMessage.Encode());
+            
+            // Write the header + message to the READ stream, then reset the stream position.
+            var writer = new BinaryWriter(_readStream);
+            versionMessageHeader.Encode(writer);
+            versionMessage.Encode(writer);
+            _readStream.Position = 0;
+            
+            var subject = new Peer(_networkClientMock.Object, _currencyNet);
+            await subject.ConnectAsync();
+            
+            // Closure to capture the data passed to the raised event
+            PeerMessageReceivedArgs eventArgs = null;            
+            var resetEvent = new ManualResetEvent(false);
+            subject.MessageReceived += (sender, e) =>
+            {
+                eventArgs = e;
+                resetEvent.Set();
+            };
+            
+            resetEvent.WaitOne(TimeSpan.FromSeconds(1));
+            
+            Assert.True(eventArgs != null);
+            Assert.Equal(versionMessageHeader.Checksum, (IEnumerable<byte>)eventArgs.Header.Checksum);
         }
     }
 }

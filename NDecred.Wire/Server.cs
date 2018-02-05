@@ -36,7 +36,6 @@ namespace NDecred.Wire
             switch (e.Message)
             {
                 case MsgAddr addr:
-                    OnMsgAddressReceived(sender, new PeerMessageReceivedArgs<MsgAddr>(e.Header, addr));
                     break;
                 case MsgGetAddr getAddr:
                     sender.SendMessage(new MsgAddr { });
@@ -57,27 +56,6 @@ namespace NDecred.Wire
                     break;
                 case MsgBlock block:
                     break;
-            }
-        }
-
-        public virtual void OnMsgAddressReceived(Peer peer, PeerMessageReceivedArgs<MsgAddr> e)
-        {
-            foreach (var a in e.Message.Addresses)
-            {
-                var thread = new Thread(() =>
-                {
-                    try
-                    {
-                        var endpoint = new IPEndPoint(new IPAddress(a.Ip), a.Port);
-                        ConnectToPeerAsync(endpoint).Wait();
-                    }
-                    catch (Exception exception)
-                    {
-                        Console.WriteLine(exception);
-                    }
-                });
-                        
-                thread.Start();
             }
         }
 

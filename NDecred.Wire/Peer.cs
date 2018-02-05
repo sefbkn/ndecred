@@ -52,8 +52,9 @@ namespace NDecred.Wire
 
             using (var reader = _client.GetStreamReader())
             {
-                while (_client.IsConnected)
+                while (true)
                 {
+                    // If there is no data to read, this will block until the next message becomes available.
                     var header = new MessageHeader();
                     header.Decode(reader);
 
