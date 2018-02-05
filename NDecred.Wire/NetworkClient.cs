@@ -16,6 +16,9 @@ namespace NDecred.Wire
         Task ConnectAsync();
     }
 
+    /// <summary>
+    /// Abstracts TCP client and its underlying r/w streams.
+    /// </summary>
     public class NetworkClient : INetworkClient
     {
         private readonly int _port;

@@ -31,6 +31,11 @@ namespace NDecred.Wire
             return peer;
         }
 
+        /// <summary>
+        /// Fired whenever a fully parsed message is received from a peer.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PeerMessageReceived(Peer sender, PeerMessageReceivedArgs e)
         {
             switch (e.Message)

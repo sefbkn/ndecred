@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace NDecred.Wire
 {
     /// <summary>
-    /// WIP.  No error handling / single threaded + doesn't react to messages.
+    /// Wraps a connection to a single peer on the Decred network.
     /// </summary>
     public class Peer : IDisposable
     {
