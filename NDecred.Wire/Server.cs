@@ -19,42 +19,30 @@ namespace NDecred.Wire
 
         public async Task<Peer> ConnectToPeerAsync(IPEndPoint endpoint)
         {
-            endpoint.Address = endpoint.Address.MapToIPv4();
-            var tcpClient = new TcpClient(endpoint.Address.AddressFamily);
-            var peer = new Peer(tcpClient, CurrencyNet.TestNet2);
+            var networkClient = new NetworkClient(endpoint.Address.GetAddressBytes(), endpoint.Port);
+            var peer = new Peer(networkClient, CurrencyNet.TestNet2);
+            
+            // Subscribe to incoming messages
             peer.MessageReceived += PeerMessageReceived;
-            await peer.ConnectAsync(endpoint);            
+            
+            // Establish connection
+            await peer.ConnectAsync();
+            
             return peer;
         }
 
-        private async void PeerMessageReceived(Peer sender, PeerMessageReceivedArgs e)
+        private void PeerMessageReceived(Peer sender, PeerMessageReceivedArgs e)
         {
             switch (e.Message)
             {
                 case MsgAddr addr:
-                    foreach (var a in addr.Addresses)
-                    {
-                        var thread = new Thread(() =>
-                        {
-                            try
-                            {
-                                var endpoint = new IPEndPoint(new IPAddress(a.Ip), a.Port);
-                                ConnectToPeerAsync(endpoint).Wait();
-                            }
-                            catch (Exception exception)
-                            {
-                                Console.WriteLine(exception);
-                            }
-                        });
-                        
-                        thread.Start();
-                    }
+                    OnMsgAddressReceived(sender, new PeerMessageReceivedArgs<MsgAddr>(e.Header, addr));
                     break;
                 case MsgGetAddr getAddr:
-                    await sender.SendMessageAsync(new MsgAddr { });
+                    sender.SendMessage(new MsgAddr { });
                     break;
                 case MsgPing ping:
-                    await sender.SendMessageAsync(new MsgPong { Nonce = ping.Nonce });
+                    sender.SendMessage(new MsgPong { Nonce = ping.Nonce });
                     break;
                 case MsgPong pong:
                     break;
@@ -69,6 +57,27 @@ namespace NDecred.Wire
                     break;
                 case MsgBlock block:
                     break;
+            }
+        }
+
+        public virtual void OnMsgAddressReceived(Peer peer, PeerMessageReceivedArgs<MsgAddr> e)
+        {
+            foreach (var a in e.Message.Addresses)
+            {
+                var thread = new Thread(() =>
+                {
+                    try
+                    {
+                        var endpoint = new IPEndPoint(new IPAddress(a.Ip), a.Port);
+                        ConnectToPeerAsync(endpoint).Wait();
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception);
+                    }
+                });
+                        
+                thread.Start();
             }
         }
 

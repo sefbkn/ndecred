@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using NDecred.Core;
 
 namespace NDecred.Wire
 {
@@ -19,12 +11,12 @@ namespace NDecred.Wire
     public class Peer : IDisposable
     {
         private readonly CurrencyNet _currencyNet;
-        private readonly TcpClient _client;
+        private readonly INetworkClient _client;
         private Task _backgroundReadTask;
-                                
-        public Peer(TcpClient tcpClient, CurrencyNet currencyNet)
+
+        public Peer(INetworkClient networkClient, CurrencyNet currencyNet)
         {
-            _client = tcpClient ?? throw new ArgumentNullException(nameof(tcpClient));
+            _client = networkClient ?? throw new ArgumentNullException(nameof(networkClient));
             _currencyNet = currencyNet;
         }
 
@@ -35,15 +27,15 @@ namespace NDecred.Wire
         /// Asynchronously establishes a connection with the peer.  The version is sent
         /// </summary>
         /// <returns></returns>
-        public async Task ConnectAsync(IPEndPoint ipEndPoint)
+        public async Task ConnectAsync()
         {
-            if (_client.Connected)
+            if (_client.IsConnected)
                 return;
 
-            await _client.ConnectAsync(ipEndPoint.Address, ipEndPoint.Port);
+            await _client.ConnectAsync();
 
             // Before any other messages can be processed, need to send version
-            await SendMessageAsync(new MsgVersion { ProtocolVersion = 1});
+            SendMessage(new MsgVersion { ProtocolVersion = 1 });
             
             // Fire off background task to process incoming requests
             _backgroundReadTask = new Task(ReadIncomingMessages, TaskCreationOptions.LongRunning);
@@ -57,19 +49,20 @@ namespace NDecred.Wire
         /// </summary>
         private void ReadIncomingMessages()
         {
-            var stream = _client.GetStream();
-            var reader = new BinaryReader(stream);
-            
-            while (_client.Connected)
-            {
-                var header = new MessageHeader();
-                header.Decode(reader);
 
-                var message = header.Command.CreateMessage();
-                message.ProtocolVersion = 1;
-                message.Decode(reader);
+            using (var reader = _client.GetStreamReader())
+            {
+                while (_client.IsConnected)
+                {
+                    var header = new MessageHeader();
+                    header.Decode(reader);
+
+                    var message = header.Command.CreateMessage();
+                    message.ProtocolVersion = 1;
+                    message.Decode(reader);
                 
-                OnMessageReceived(new PeerMessageReceivedArgs(header, message));
+                    OnMessageReceived(new PeerMessageReceivedArgs(header, message));
+                }
             }
         }
 
@@ -79,10 +72,9 @@ namespace NDecred.Wire
         /// A message header is created for the message, internally, and also sent with the provided message
         /// </summary>
         /// <param name="message"></param>
-        public async Task SendMessageAsync(Message message)
+        public void SendMessage(Message message)
         {
-            using(var ms = new MemoryStream())
-            using (var writer = new BinaryWriter(ms))
+            using (var writer = _client.GetStreamWriter())
             {
                 var messageBytes = message.Encode();
                 var messageHeader = new MessageHeader(_currencyNet, message.Command, messageBytes);
@@ -90,9 +82,6 @@ namespace NDecred.Wire
             
                 writer.Write(messageHeaderBytes.Concat(messageBytes).ToArray());
                 writer.Flush();
-
-                var bytes = ms.ToArray();
-                await _client.GetStream().WriteAsync(bytes, 0, bytes.Length);
             }
         }
 
@@ -104,6 +93,11 @@ namespace NDecred.Wire
         protected virtual void OnMessageReceived(PeerMessageReceivedArgs e)
         {
             MessageReceived?.Invoke(this, e);
+        }
+
+        public override string ToString()
+        {
+            return $"Peer {_client}; Connected: {_client.IsConnected}";
         }
     }
 }
