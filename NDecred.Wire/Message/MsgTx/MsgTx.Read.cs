@@ -47,7 +47,7 @@ namespace NDecred.Wire
         {
             var count = reader.ReadVariableLengthInteger();
             if (count > MaxTxInPerMessage)
-                throw new Exception($"transaction count {count} too high to fit into message");
+                throw new WireException($"transaction count {count} too high to fit into message");
 
             TxIn = new TxIn[count];
             for (ulong i = 0; i < count; i++)
@@ -59,7 +59,7 @@ namespace NDecred.Wire
         {
             var count = reader.ReadVariableLengthInteger();
             if (count > MaxTxInPerMessage)
-                throw new Exception($"transaction count {count} too high to fit into message");
+                throw new WireException($"transaction count {count} too high to fit into message");
 
             TxIn = new TxIn[count];
             for (ulong i = 0; i < count; i++)
@@ -72,7 +72,7 @@ namespace NDecred.Wire
             {
                 var count = reader.ReadVariableLengthInteger();
                 if (count > MaxTxInPerMessage)
-                    throw new Exception($"transaction count {count} too high to fit into message");
+                    throw new WireException($"transaction count {count} too high to fit into message");
 
                 TxIn = new TxIn[count];
                 for (ulong i = 0; i < count; i++)
@@ -85,10 +85,10 @@ namespace NDecred.Wire
                     throw new InvalidOperationException(
                         "TxIn should be parsed before witness data for TxSerializeFull");
                 if (count != (ulong) TxIn.Length)
-                    throw new Exception(
+                    throw new WireException(
                         $"transaction count {TxIn.Length} does not equal number of signature scripts {count}");
                 if (count > MaxTxInPerMessage)
-                    throw new Exception($"transaction count {count} too high to fit into message");
+                    throw new WireException($"transaction count {count} too high to fit into message");
 
                 for (ulong i = 0; i < count; i++)
                 {
@@ -122,7 +122,7 @@ namespace NDecred.Wire
         private TxIn ReadTxInPrefix(BinaryReader reader, TxSerializeType serializationType)
         {
             if (serializationType == TxSerializeType.TxSerializeOnlyWitness)
-                throw new Exception("tried to read a prefix input for a witness only tx");
+                throw new WireException("tried to read a prefix input for a witness only tx");
 
             var prevOutPoint = ReadOutPoint(reader);
             var sequence = reader.ReadUInt32();

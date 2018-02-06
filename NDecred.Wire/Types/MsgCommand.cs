@@ -103,7 +103,7 @@ namespace NDecred.Wire
                 return cmd;
             }
 
-            throw new Exception($"Unrecogized command {commandName}");
+            throw new WireException($"Unrecogized command {commandName}");
         }
         
         public override void Decode(BinaryReader reader)
@@ -126,7 +126,7 @@ namespace NDecred.Wire
             var bytesOut = new byte[CommandSizeBytes];
 
             if (Name.Length > bytesOut.Length)
-                throw new Exception(
+                throw new WireException(
                     $"Command name is larger that the maximum allowed size {CommandSizeBytes} bytes");
 
             for (var i = 0; i < Name.Length; i++)

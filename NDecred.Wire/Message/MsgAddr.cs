@@ -15,7 +15,7 @@ namespace NDecred.Wire
         {
             var count = reader.ReadVariableLengthInteger();
             if(count > MaxAddrPerMsg)
-                throw new Exception($"Too many addresses for message {count}.  Maximum allowed is {MaxAddrPerMsg}");
+                throw new WireException($"Too many addresses for message {count}.  Maximum allowed is {MaxAddrPerMsg}");
 
             var addresses = Enumerable.Range(1, (int) count)
                 .Select(c => new NetworkAddress(true))

@@ -4,6 +4,9 @@ using NDecred.Common;
 
 namespace NDecred.Wire
 {
+    /// <summary>
+    /// Message sent during connection initialization between peers. 
+    /// </summary>
     public class MsgVersion : Message
     {
         public const int MaxUserAgentLen = 256;

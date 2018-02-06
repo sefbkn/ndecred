@@ -28,7 +28,7 @@ namespace NDecred.Wire
 	        for (var i = 0; i < hashes.Length; i++)
 		        hashes[i] = reader.ReadBytes(32);
 	        BlockLocatorHashes = hashes;
-	        
+
 	        HashStop = reader.ReadBytes(32);
         }
 

@@ -40,26 +40,32 @@ namespace NDecred.Wire
         {
             switch (e.Message)
             {
-                case MsgAddr addr:
+                case MsgAddr msgAddr:
                     break;
-                case MsgGetAddr getAddr:
+                case MsgBlock msgBlock:
+                    break;
+                case MsgGetAddr msgGetAddr:
                     sender.SendMessage(new MsgAddr { });
                     break;
-                case MsgPing ping:
-                    sender.SendMessage(new MsgPong { Nonce = ping.Nonce });
+                case MsgGetBlocks msgGetBlocks:
                     break;
-                case MsgPong pong:
+                case MsgGetHeaders msgGetHeaders:
+                    break;                
+                case MsgGetMiningState msgGetMiningState:
                     break;
-                case MsgVerAck verAck:
+                case MsgPing msgPing:
+                    sender.SendMessage(new MsgPong { Nonce = msgPing.Nonce });
+                    break;
+                case MsgPong msgPong:
+                    break;
+                case MsgReject msgReject:
+                    break;
+                case MsgTx msgTx:
+                    break;
+                case MsgVerAck msgVerAck:
                     Peers.Add(sender);
                     break;
-                case MsgVersion version:
-                    break;
-                case MsgReject reject:
-                    break;
-                case MsgTx tx:
-                    break;
-                case MsgBlock block:
+                case MsgVersion msgVersion:
                     break;
             }
         }
