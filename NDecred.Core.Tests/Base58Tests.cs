@@ -7,7 +7,7 @@ namespace NDecred.Core.Tests
 {
     public class Base58Tests
     {
-        private readonly Base58Check _subject = new Base58Check(Hash.BLAKE256D);
+        private readonly Base58Check _subject = new Base58Check(HashUtil.Blake256D);
 
         // Test data from dcrd
         // https://github.com/decred/dcrd/blob/master/dcrutil/address_test.go
@@ -45,7 +45,7 @@ namespace NDecred.Core.Tests
                 IsValid = true,
                 NetworkPrefix = Network.Mainnet.AddressPrefix.PayToScriptHash,
                 Address = "DcuQKx8BES9wU7C6Q5VmLBjw436r27hayjS",
-                Hash = Hash.RIPEMD160(Hash.BLAKE256(new byte[]
+                Hash = HashUtil.Ripemd160(HashUtil.Blake256(new byte[]
                 {
                     0x51, 0x21, 0x03, 0xaa, 0x43, 0xf0, 0xa6, 0xc1, 0x57, 0x30,
                     0xd8, 0x86, 0xcc, 0x1f, 0x03, 0x42, 0x04, 0x6d, 0x20, 0x17,

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NDecred.Blockchain\NDecred.Blockchain.csproj">
+      <Project>{B1B1CA21-21B1-4858-A334-46B727D842C0}</Project>
+      <Name>NDecred.Blockchain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDecred.Common\NDecred.Common.csproj">
+      <Project>{5202A495-EFE7-4642-9848-37E8BB4A56B8}</Project>
+      <Name>NDecred.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NDecred.Core\NDecred.Core.csproj">
+      <Project>{254B5F1F-5E8B-4C77-8FAE-796526B07CD9}</Project>
+      <Name>NDecred.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

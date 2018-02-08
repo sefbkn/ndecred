@@ -27,7 +27,4 @@
       <HintPath>..\NDecred.Core.Tests\bin\Debug\netcoreapp2.0\NDecred.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Configuration" />
-  </ItemGroup>
 </Project>
