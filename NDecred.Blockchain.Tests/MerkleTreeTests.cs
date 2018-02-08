@@ -54,7 +54,7 @@ namespace NDecred.Blockchain.Tests
         }
         
         [Fact]
-        public void GetRoot_GivenThreeHashes_ReturnsHashOfThreeElements()
+        public void GetRoot_GivenThreeHashes_ReturnsExpectedMerkleRoot()
         {            
             var hashA = _hashes[0];
             var hashB = _hashes[1];
@@ -73,7 +73,7 @@ namespace NDecred.Blockchain.Tests
         }
         
         [Fact]
-        public void GetRoot_GivenFiveHashes_ReturnsHashOfFiveElements()
+        public void GetRoot_GivenFiveHashes_ReturnsExpectedMerkleRoot()
         {
             var hashA = _hashes[0];
             var hashB = _hashes[1];
