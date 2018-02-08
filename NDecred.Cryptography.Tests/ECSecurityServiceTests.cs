@@ -22,7 +22,7 @@ namespace NDecred.Cryptography.Tests
         public void ECSecurityService_VerifySignature_VerifiesGeneratedSignatureAgainstPublicKey()
         {
             const bool isCompressed = false;
-            var messageHash = Hash.BLAKE256(_message);
+            var messageHash = HashUtil.Blake256(_message);
             var signature = new ECSignature(_signature);
 
             var privateSecurityService = new ECPrivateSecurityService(_privateKey);
@@ -38,7 +38,7 @@ namespace NDecred.Cryptography.Tests
         public void PrivateKey_Sign_ReturnsExpectedSignatureDer()
         {
             var privateKey = new ECPrivateSecurityService(_privateKey);
-            var messageHash = Hash.BLAKE256(_message);
+            var messageHash = HashUtil.Blake256(_message);
             var signature = privateKey.Sign(messageHash).ToDer();
 
             Assert.Equal(_signature, signature);

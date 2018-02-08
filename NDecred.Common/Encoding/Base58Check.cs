@@ -19,7 +19,7 @@ namespace NDecred.Common.Encoding
 
         public Base58Check(Func<byte[], byte[]> checksumHashAlgorithm = null)
         {
-            _checksumHashAlgorithm = checksumHashAlgorithm ?? Hash.BLAKE256D;
+            _checksumHashAlgorithm = checksumHashAlgorithm ?? HashUtil.Blake256D;
         }
 
         public string Encode(IEnumerable<byte> versionPrefix, IEnumerable<byte> data, bool isCompressed)

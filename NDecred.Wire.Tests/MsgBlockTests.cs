@@ -146,6 +146,7 @@ namespace NDecred.Network.Tests
 		    
 		    Assert.True(expected.SequenceEqual(actual));
 	    }
+	    
 	    [Fact]
 	    public void STxHashes_GivenKnownBlock_ReturnsExpectedHash()
 	    {

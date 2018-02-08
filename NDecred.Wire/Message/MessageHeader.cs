@@ -21,7 +21,7 @@ namespace NDecred.Wire
             CurrencyNetwork = currencyNet;
             Command = command;
             PayloadLength = payload.Length;
-            Checksum = Hash.BLAKE256(payload).Take(ChecksumLengthBytes).ToArray();
+            Checksum = HashUtil.Blake256(payload).Take(ChecksumLengthBytes).ToArray();
         }
 
         public CurrencyNet CurrencyNetwork { get; set; }

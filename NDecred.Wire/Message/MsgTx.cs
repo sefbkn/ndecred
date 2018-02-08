@@ -100,19 +100,19 @@ namespace NDecred.Wire
         ///     Calculates the BLAKE256 hash of the current instance.  Witness data is not serialized.
         /// </summary>
         /// <returns>The hash as a byte[] with length 32</returns>
-        public byte[] GetHash()
+        public byte[] GetHash(TxSerializeType serializationType = TxSerializeType.TxSerializeNoWitness)
         {
             byte[] bytes;
 
             using (var ms = new MemoryStream())
             using (var bw = new BinaryWriter(ms))
             {
-                Encode(bw, TxSerializeType.TxSerializeNoWitness);
+                Encode(bw, serializationType);
                 bw.Flush();
                 bytes = ms.ToArray();
             }
 
-            return Hash.BLAKE256(bytes);
+            return HashUtil.Blake256(bytes);
         }
 
         public override MsgCommand Command => MsgCommand.Tx;

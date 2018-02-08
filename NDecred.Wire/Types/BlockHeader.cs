@@ -83,7 +83,7 @@ namespace NDecred.Wire
 
         public byte[] GetHash()
         {
-            return Hash.BLAKE256(Encode());
+            return HashUtil.Blake256(Encode());
         }
     }
 }

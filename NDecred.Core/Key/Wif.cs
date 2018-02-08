@@ -19,7 +19,7 @@ namespace NDecred.Core
         // Length of a private key, in bytes
         private const int KeyLength = 32;
 
-        private static readonly Base58Check Base58Check = new Base58Check(Hash.BLAKE256);
+        private static readonly Base58Check Base58Check = new Base58Check(HashUtil.Blake256);
 
         public static string Serialize(Network network, ECDSAType type, bool isCompressed, byte[] privateKey)
         {
