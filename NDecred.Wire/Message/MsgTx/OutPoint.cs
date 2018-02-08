@@ -4,22 +4,11 @@ namespace NDecred.Wire
 {
     public enum TxTree : byte
     {
-        // TxTreeUnknown is the value returned for a transaction tree that is
-        // unknown.  This is typically because the transaction has not been
-        // inserted into a block yet.
         TxTreeUnknown = 0xff, // -1
-
-        // TxTreeRegular is the value for a normal transaction tree for a
-        // transaction's location in a block.
         TxTreeRegular = 0,
-
-        // TxTreeStake is the value for a stake transaction tree for a
-        // transaction's location in a block.
         TxTreeStake = 1
     }
 
-    // OutPoint defines a bitcoin data type that is used to track previous
-    // transaction outputs.
     public class OutPoint
     {
         public OutPoint()

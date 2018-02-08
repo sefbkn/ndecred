@@ -12,6 +12,10 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NDecred.Blockchain\NDecred.Blockchain.csproj">
+      <Project>{B1B1CA21-21B1-4858-A334-46B727D842C0}</Project>
+      <Name>NDecred.Blockchain</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NDecred.Core\NDecred.Core.csproj">
       <Project>{254B5F1F-5E8B-4C77-8FAE-796526B07CD9}</Project>
       <Name>NDecred.Core</Name>

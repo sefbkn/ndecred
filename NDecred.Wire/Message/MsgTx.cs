@@ -31,19 +31,19 @@ namespace NDecred.Wire
 
             switch (SerializationType)
             {
-                case TxSerializeType.TxSerializeNoWitness:
+                case TxSerializeType.NoWitness:
                     DecodePrefix(reader);
                     break;
-                case TxSerializeType.TxSerializeOnlyWitness:
+                case TxSerializeType.OnlyWitness:
                     DecodeWitness(reader, false);
                     break;
-                case TxSerializeType.TxSerializeWitnessSigning:
+                case TxSerializeType.WitnessSigning:
                     DecodeWitnessSigning(reader);
                     break;
-                case TxSerializeType.TxSerializeWitnessValueSigning:
+                case TxSerializeType.WitnessValueSigning:
                     DecodeWitnessValueSigning(reader);
                     break;
-                case TxSerializeType.TxSerializeFull:
+                case TxSerializeType.Full:
                     DecodePrefix(reader);
                     DecodeWitness(reader, true);
                     break;
@@ -75,19 +75,19 @@ namespace NDecred.Wire
 
             switch (serializationType)
             {
-                case TxSerializeType.TxSerializeNoWitness:
+                case TxSerializeType.NoWitness:
                     EncodePrefix(writer);
                     break;
-                case TxSerializeType.TxSerializeOnlyWitness:
+                case TxSerializeType.OnlyWitness:
                     EncodeWitness(writer);
                     break;
-                case TxSerializeType.TxSerializeWitnessSigning:
+                case TxSerializeType.WitnessSigning:
                     EncodeWitnessSigning(writer);
                     break;
-                case TxSerializeType.TxSerializeWitnessValueSigning:
+                case TxSerializeType.WitnessValueSigning:
                     EncodeWitnessValueSigning(writer);
                     break;
-                case TxSerializeType.TxSerializeFull:
+                case TxSerializeType.Full:
                     EncodePrefix(writer);
                     EncodeWitness(writer);
                     break;
@@ -100,7 +100,7 @@ namespace NDecred.Wire
         ///     Calculates the BLAKE256 hash of the current instance.  Witness data is not serialized.
         /// </summary>
         /// <returns>The hash as a byte[] with length 32</returns>
-        public byte[] GetHash(TxSerializeType serializationType = TxSerializeType.TxSerializeNoWitness)
+        public byte[] GetHash(TxSerializeType serializationType = TxSerializeType.NoWitness)
         {
             byte[] bytes;
 
@@ -113,6 +113,13 @@ namespace NDecred.Wire
             }
 
             return HashUtil.Blake256(bytes);
+        }
+
+        public byte[] GetFullHash()
+        {
+            var prefixHash = GetHash(TxSerializeType.NoWitness);
+            var witnessHash = GetHash(TxSerializeType.OnlyWitness);
+            return HashUtil.Blake256(prefixHash, witnessHash);
         }
 
         public override MsgCommand Command => MsgCommand.Tx;

@@ -24,19 +24,20 @@ namespace NDecred.Wire
         public const int CommandSizeBytes = 12;
 
         public static readonly MsgCommand Addr = new MsgCommand("addr", () => new MsgAddr());
+        public static readonly MsgCommand Block = new MsgCommand("block", () => new MsgBlock());
         public static readonly MsgCommand GetAddr = new MsgCommand("getaddr", () => new MsgGetAddr());
+        public static readonly MsgCommand GetBlocks = new MsgCommand("getblocks", () => new MsgGetBlocks());
+        public static readonly MsgCommand GetHeaders = new MsgCommand("getheaders", () => new MsgGetHeaders());
         public static readonly MsgCommand Ping = new MsgCommand("ping", () => new MsgPing());
         public static readonly MsgCommand Pong = new MsgCommand("pong", () => new MsgPong());
+        public static readonly MsgCommand Reject = new MsgCommand("reject", () => new MsgReject());
         public static readonly MsgCommand Tx = new MsgCommand("tx", () => new MsgTx());
         public static readonly MsgCommand Version = new MsgCommand("version", () => new MsgVersion());
         public static readonly MsgCommand VerAck = new MsgCommand("verack", () => new MsgVerAck());
 
-        public static readonly MsgCommand GetBlocks = new MsgCommand("getblocks", () => new MsgNotImplemented());
         public static readonly MsgCommand Inv = new MsgCommand("inv", () => new MsgNotImplemented());
         public static readonly MsgCommand GetData = new MsgCommand("getdata", () => new MsgNotImplemented());
         public static readonly MsgCommand NotFound = new MsgCommand("notfound", () => new MsgNotImplemented());
-        public static readonly MsgCommand Block = new MsgCommand("block", () => new MsgNotImplemented());
-        public static readonly MsgCommand GetHeaders = new MsgCommand("getheaders", () => new MsgNotImplemented());
         public static readonly MsgCommand Headers = new MsgCommand("headers", () => new MsgNotImplemented());
         public static readonly MsgCommand Alert = new MsgCommand("alert", () => new MsgNotImplemented());
         public static readonly MsgCommand MemPool = new MsgCommand("mempool", () => new MsgNotImplemented());
@@ -46,7 +47,6 @@ namespace NDecred.Wire
         public static readonly MsgCommand FilterClear = new MsgCommand("filterclear", () => new MsgNotImplemented());
         public static readonly MsgCommand FilterLoad = new MsgCommand("filterload", () => new MsgNotImplemented());
         public static readonly MsgCommand MerkleBlock = new MsgCommand("merkleblock", () => new MsgNotImplemented());
-        public static readonly MsgCommand Reject = new MsgCommand("reject", () => new MsgNotImplemented());
         public static readonly MsgCommand SendHeaders = new MsgCommand("sendheaders", () => new MsgNotImplemented());
         public static readonly MsgCommand FeeFilter = new MsgCommand("feefilter", () => new MsgNotImplemented());
 
@@ -88,7 +88,7 @@ namespace NDecred.Wire
             FeeFilter
         };
 
-        public string Name { get; set; }
+        public string Name { get; private set; }
 
         public Message CreateMessage()
         {

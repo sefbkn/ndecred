@@ -121,7 +121,7 @@ namespace NDecred.Wire
 
         private TxIn ReadTxInPrefix(BinaryReader reader, TxSerializeType serializationType)
         {
-            if (serializationType == TxSerializeType.TxSerializeOnlyWitness)
+            if (serializationType == TxSerializeType.OnlyWitness)
                 throw new WireException("tried to read a prefix input for a witness only tx");
 
             var prevOutPoint = ReadOutPoint(reader);

@@ -11,6 +11,9 @@ namespace NDecred.Network.Tests
 	    // https://github.com/decred/dcrd/blob/master/wire/msgblock_test.go
 	    private readonly byte[] _testBlockBytes = 
 	    {
+		    // Copyright (c) 2013-2016 The btcsuite developers
+		    // Copyright (c) 2015-2017 The Decred developers
+
 		    // Begin block header
 		    0x01, 0x00, 0x00, 0x00, // Version 1 [0]
 		    0x6f, 0xe2, 0x8c, 0x0a, 0xb6, 0xf1, 0xb3, 0x72,
