@@ -10,6 +10,26 @@ namespace NDecred.TxScript.Tests
         {
         }
         
+
+        [Fact]
+        public void Run_WithSimpleNotIfConditionTrue_ExecutesNotIfBlock()
+        {
+            var opCodes = new[]
+            {
+                OpCode.OP_FALSE,
+                OpCode.OP_NOTIF,
+                OpCode.OP_2,
+                OpCode.OP_ELSE,
+                OpCode.OP_3, 
+                OpCode.OP_ENDIF
+            };
+
+            var engine = new ScriptEngine();
+            engine.Run(opCodes);
+            
+            Assert.Equal(2, engine.DataStack.PopInt32());
+        }
+        
         [Fact]
         public void Run_WithSimpleIfConditionFalse_ExecutesElseBlock()
         {

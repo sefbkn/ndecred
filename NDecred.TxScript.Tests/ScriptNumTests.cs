@@ -19,7 +19,12 @@ namespace NDecred.TxScript.Tests
                 {
                     var subject = new ScriptInteger(test.Serialized, test.MinimalEncoding, test.NumLen);
                     
+                    // Test deserialization
                     Assert.Equal(test.Number, (int) subject);
+                    
+                    // Assert serialization works with minimal encoding.
+                    if(test.MinimalEncoding)
+                        Assert.Equal(test.Serialized, subject.ToBytes());
                     
                     if(test.ExpectedException != null)
                         throw new Exception($"Expected exception of type {test.ExpectedException} not thrown");

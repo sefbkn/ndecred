@@ -57,7 +57,7 @@ namespace NDecred.TxScript
         public void InitializeOpCodeDictionary()
         {
             _opCodeLookup.Add(OpCode.OP_0, OpFalse);
-            _opCodeLookup.Add(OpCode.OP_1NEGATE, engine => OpPushInteger(new ScriptInteger(-1), 4));
+            _opCodeLookup.Add(OpCode.OP_1NEGATE, engine => OpPush(-1));
 
             // Opcode with values [0x51-0x60]
             // are aliased as OP_1, OP_2, ... OP_N.
@@ -66,7 +66,7 @@ namespace NDecred.TxScript
             {
                 var opCode = (OpCode) code;
                 var value = (byte)(code - 0x50);
-                _opCodeLookup.Add(opCode, engine => OpPushByte(engine, value));
+                _opCodeLookup.Add(opCode, engine => OpPush(value));
             }
 
             _opCodeLookup.Add(OpCode.OP_NOP, OpNop);

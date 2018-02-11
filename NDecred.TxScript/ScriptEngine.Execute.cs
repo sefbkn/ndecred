@@ -13,15 +13,15 @@ namespace NDecred.TxScript
             engine.DataStack.Push(new byte[0]);
         }
 
-        // This is wrong.  Should be pushing a byte[] longer than 1 byte.
-        private void OpPushByte(ScriptEngine engine, byte value)
+        private void OpPush(byte value)
         {
             DataStack.Push(new[]{value});
         }
 
-        private void OpPushInteger(ScriptInteger integer, int maxLength)
+        private void OpPush(int value)
         {
-            DataStack.Push(integer.ToBytes());
+            var scriptInteger = new ScriptInteger(value);
+            DataStack.Push(scriptInteger.ToBytes());
         }
 
         private void OpIf(ScriptEngine e)
@@ -47,7 +47,7 @@ namespace NDecred.TxScript
                     e.BranchStack.Push(BranchOption.Skip);
                     break;
                 case BranchOption.True:
-                    e.BranchStack.Push(!e.DataStack.PopBool() ? BranchOption.False : BranchOption.True);
+                    e.BranchStack.Push(!e.DataStack.PopBool() ? BranchOption.True : BranchOption.False);
                     break;
             }
         }

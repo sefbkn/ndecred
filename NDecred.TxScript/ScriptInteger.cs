@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
+    /// <summary>
+    /// Represents an integer that operated on by a script.
+    /// </summary>
     public struct ScriptInteger
     {
         public const int MathOpcodeMaxLength = 4;
