@@ -71,5 +71,16 @@ namespace NDecred.TxScript
         {
             BranchStack.Discard();
         }
+
+        private void OpVerify()
+        {
+            if (!DataStack.PopBool())
+                throw new VerifyFailedException();
+        }
+
+        private void OpReserved(OpCode opCode)
+        {
+            throw new ReservedOpCodeException(opCode);
+        }
     }
 }

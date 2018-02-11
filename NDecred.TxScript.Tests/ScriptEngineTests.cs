@@ -9,7 +9,33 @@ namespace NDecred.TxScript.Tests
         public ScriptEngineTests()
         {
         }
+
+        [Fact]
+        public void Run_GivenReservedOpCode_ThrowsReservedOpCodeException()
+        {
+            var reserved = new[]
+            {
+                OpCode.OP_VER
+            };
+
+            foreach (var opCode in reserved)
+            {
+                var engine = new ScriptEngine();
+                Assert.Throws<ReservedOpCodeException>(() => engine.Run(new[]{opCode}));
+            }
+        }
         
+        [Fact]
+        public void Run_PushIntegerOpCodes_PushesRespectiveIntegerOntoDataStack()
+        {
+            for (var index = 0x51; index <= 0x60; index++)
+            {
+                var opCode = (OpCode) index;
+                var engine = new ScriptEngine();
+                engine.Run(new[]{opCode});
+                Assert.Equal(index - 0x50, engine.DataStack.PopInt32());
+            }
+        }
 
         [Fact]
         public void Run_WithSimpleNotIfConditionTrue_ExecutesNotIfBlock()

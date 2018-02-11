@@ -25,32 +25,17 @@ namespace NDecred.TxScript
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public void Run(OpCode[] instructions)
         {
-            // Instruction pointer
-            int ip = 0;
-
-            try
+            foreach (var opCode in instructions)
             {
-                for (; ip < instructions.Length; ip++)
-                {
-                    var opCode = instructions[ip];
-                    var branchOp = BranchStack.Peek();
-                    var canExecute = branchOp == BranchOption.True || opCode.IsConditional();
-                    if (!canExecute) continue;
-                    Execute(opCode);
-                }
-
-                if (BranchStack.Count > 1)
-                {
-                    throw new RuntimeScriptException(ip, this, "Script missing OP_ENDIF");
-                }
+                var branchOp = BranchStack.Peek();
+                var canExecute = branchOp == BranchOption.True || opCode.IsConditional();
+                if (!canExecute) continue;
+                Execute(opCode);
             }
-            catch (RuntimeScriptException)
+
+            if (BranchStack.Count > 1)
             {
-                throw;
-            }
-            catch (ScriptException e)
-            {
-                throw new RuntimeScriptException(ip, this, innerException: e);
+                throw new ScriptSyntaxError("Script missing OP_ENDIF");
             }
         }
         
@@ -70,10 +55,12 @@ namespace NDecred.TxScript
             }
 
             _opCodeLookup.Add(OpCode.OP_NOP, OpNop);
+            _opCodeLookup.Add(OpCode.OP_VER, _ => OpReserved(OpCode.OP_VER));
             _opCodeLookup.Add(OpCode.OP_IF, OpIf);
             _opCodeLookup.Add(OpCode.OP_NOTIF, OpNotIf);
             _opCodeLookup.Add(OpCode.OP_ELSE, OpElse);
             _opCodeLookup.Add(OpCode.OP_ENDIF, OpEndIf);
+            _opCodeLookup.Add(OpCode.OP_VERIFY, _ => OpVerify());
             
 
             // Opcodes with values [193, 249]
