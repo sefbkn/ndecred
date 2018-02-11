@@ -9,6 +9,10 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NDecred.Common\NDecred.Common.csproj">
+      <Project>{5202A495-EFE7-4642-9848-37E8BB4A56B8}</Project>
+      <Name>NDecred.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NDecred.TxScript\NDecred.TxScript.csproj">
       <Project>{409A4B4F-C264-4190-B42F-136573A03721}</Project>
       <Name>NDecred.TxScript</Name>

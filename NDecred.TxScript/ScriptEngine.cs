@@ -4,61 +4,93 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
-    public class ScriptEngine
+    public partial class ScriptEngine
     {
+        private readonly Dictionary<OpCode, Action<ScriptEngine>> _opCodeLookup;
         public ScriptStack DataStack { get; }
         public BranchStack BranchStack { get; }
 
-        public ScriptEngine(ScriptStack stack = null)
+        public ScriptEngine(ScriptStack data = null, BranchStack branch = null)
         {
-            BranchStack = new BranchStack();
-            DataStack = stack ?? new ScriptStack();
+            BranchStack = branch ?? new BranchStack();
+            DataStack = data ?? new ScriptStack();
+            _opCodeLookup = new Dictionary<OpCode, Action<ScriptEngine>>();
+            InitializeOpCodeDictionary();
         }
-
-        public void Run(IEnumerable<OpCode> instructions)
+        
+        /// <summary>
+        /// Executes a sequence of instructions, taking branching logic into account.
+        /// </summary>
+        /// <param name="instructions"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public void Run(OpCode[] instructions)
         {
-            foreach (var opCode in instructions)
+            // Instruction pointer
+            int ip = 0;
+
+            try
             {
-                if (opCode.Word == "OP_ENDIF")
+                for (; ip < instructions.Length; ip++)
                 {
-                    BranchStack.Pop();
-                    continue;
+                    var opCode = instructions[ip];
+                    var branchOp = BranchStack.Peek();
+                    var canExecute = branchOp == BranchOption.True || opCode.IsConditional();
+                    if (!canExecute) continue;
+                    Execute(opCode);
                 }
 
-                var branchOp = BranchStack.Peek();
-                switch (branchOp)
+                if (BranchStack.Count > 1)
                 {
-                    case BranchOp.True:
-                        switch (opCode.Word)
-                        {
-                            case "OP_ELSE":
-                                BranchStack.Pop();
-                                BranchStack.Push(BranchOp.False);
-                                break;
-                            default:
-                                opCode.Execute(this);
-                                continue;
-                        }
-                        break;
-                    case BranchOp.False:
-                        switch (opCode.Word)
-                        {
-                            case "OP_ELSE":
-                                BranchStack.Pop();
-                                BranchStack.Push(BranchOp.True);
-                                break;
-                        }
-                        break;
-                    case BranchOp.Skip:
-                        switch (opCode.Word)
-                        {
-                            case "OP_IF":
-                                BranchStack.Push(BranchOp.Skip);
-                                break;
-                        }
-                        break;
+                    throw new RuntimeScriptException(ip, this, "Script missing OP_ENDIF");
                 }
             }
+            catch (RuntimeScriptException)
+            {
+                throw;
+            }
+            catch (ScriptException e)
+            {
+                throw new RuntimeScriptException(ip, this, innerException: e);
+            }
+        }
+        
+        public void InitializeOpCodeDictionary()
+        {
+            _opCodeLookup.Add(OpCode.OP_0, OpFalse);
+            _opCodeLookup.Add(OpCode.OP_1NEGATE, engine => OpPushInteger(new ScriptInteger(-1), 4));
+
+            // Opcode with values [0x51-0x60]
+            // are aliased as OP_1, OP_2, ... OP_N.
+            // Each instruction pushes its N value onto the stack.            
+            for (byte code = 0x51; code <= 0x60; code++)
+            {
+                var opCode = (OpCode) code;
+                var value = (byte)(code - 0x50);
+                _opCodeLookup.Add(opCode, engine => OpPushByte(engine, value));
+            }
+
+            _opCodeLookup.Add(OpCode.OP_NOP, OpNop);
+            _opCodeLookup.Add(OpCode.OP_IF, OpIf);
+            _opCodeLookup.Add(OpCode.OP_NOTIF, OpNotIf);
+            _opCodeLookup.Add(OpCode.OP_ELSE, OpElse);
+            _opCodeLookup.Add(OpCode.OP_ENDIF, OpEndIf);
+            
+
+            // Opcodes with values [193, 249]
+            // are "unknown", and do nothing.
+            for (byte code = 193; code <= 249; code++)
+            {
+                var opCode = (OpCode) code;
+                _opCodeLookup.Add(opCode, OpNop);
+            }
+        }
+
+        private void Execute(OpCode opCode)
+        {
+            if (!_opCodeLookup.TryGetValue(opCode, out var action))
+                throw new ScriptSyntaxError($"Attempted to execute unknown op code 0x{(byte)opCode:X}");
+            
+            action(this);
         }
     }
 }

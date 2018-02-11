@@ -7,6 +7,9 @@ namespace NDecred.Wire
 {
     /// <summary>
     /// Wraps a connection to a single peer on the Decred network.
+    /// 
+    /// When new messages are received, the MessageReceived event is fired
+    /// and the message is synchronously propogated to listeners.
     /// </summary>
     public class Peer : IDisposable
     {

@@ -18,7 +18,6 @@ namespace NDecred.TxScript
                 throw new InvalidOperationException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
         }
 
-        public ScriptStack Push(byte data) => Push(new[]{data});
         public ScriptStack Push(byte[] data)
         {
             if(data.Length > MaxByteArrayLength)
@@ -27,9 +26,17 @@ namespace NDecred.TxScript
             return this;
         }
 
-        public byte[] Pop()
+        public ScriptInteger PopInteger(int maxValue)
         {
-            return Stack.Pop();
+            return new ScriptInteger(Stack.Pop(), maxValue);
+        }
+
+        public byte PopByte()
+        {
+            var val = Stack.Pop();
+            if(val.Length != 1)
+                throw new InvalidOperationException("Expected value of length 1 to be on stack");
+            return val[0];
         }
 
         public bool PopBool()

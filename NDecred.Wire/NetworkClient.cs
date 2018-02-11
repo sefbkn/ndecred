@@ -46,6 +46,10 @@ namespace NDecred.Wire
         public BinaryReader GetStreamReader() => _streamReader = _streamReader ?? new BinaryReader(_tcpClient.GetStream(), Encoding.Default, true);
         public BinaryWriter GetStreamWriter() => _streamWriter = _streamWriter ?? new BinaryWriter(_tcpClient.GetStream(), Encoding.Default, true);
 
+        /// <summary>
+        /// Attempts to connect to the provided ip address and port.
+        /// </summary>
+        /// <returns></returns>
         public async Task ConnectAsync()
         {
             await _tcpClient.ConnectAsync(_ipAddress, _port);

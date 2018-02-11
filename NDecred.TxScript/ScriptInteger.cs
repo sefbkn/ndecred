@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace NDecred.TxScript
+{
+    public struct ScriptInteger
+    {
+        public const int MathOpcodeMaxLength = 4;
+        
+        private static readonly byte[] Zero = new byte[0];
+        
+        public long Value { get; }
+
+        public ScriptInteger(long value)
+        {
+            Value = value;
+        }
+
+        public ScriptInteger(byte[] bytes, bool assertMinimalEncoding, int maxLength)
+        {
+            if (bytes.Length > maxLength)
+                throw new Exception();
+            
+            if(bytes == null)
+                throw new ArgumentNullException(nameof(bytes));
+
+            if(assertMinimalEncoding)
+                AssertMinimalEncoding(bytes);
+
+            Value = bytes.Length == 0 ? 0 : FromBytes(bytes);
+        }
+        
+        private static void AssertMinimalEncoding(byte[] bytes)
+        {
+            var length = bytes.Length;
+            
+            if (bytes.Length == 0)
+                return;
+            
+            // Interpret single-byte values as literals,
+            // with the exception of 0x80.  That value should
+            // be extended with a sign byte.
+
+            if ((bytes[length - 1] & 0x7f) != 0) 
+                return;
+            if (length == 1)
+                throw new ScriptIntegerEncodingException(bytes, "Script integer bytes not minimally encoded.  Should be extended with a sign byte.");
+            if((bytes[length - 2] & 0x80) == 0)
+                throw new ScriptIntegerEncodingException(bytes, "Script integer bytes not minimally encoded. Can be compressed further by removing the sign byte.");
+        }
+
+        private static long FromBytes(byte[] bytes)
+        {            
+            
+            long result = 0;
+            
+            // If the leading bit is set, the number is negative.
+            var isNegative = (bytes.Last() & 0x80) != 0;
+            
+            // Extract bytes and store in long value (little -> big endian)
+            for (byte i = 0; i < bytes.Length; i++)
+                result |= (long) bytes[i] << i * 8;
+            
+            if (!isNegative) return result;
+            
+            // If the original value was negative,
+            // unset the negative-flag bit from the encoded value.
+            // Negating the long value will set the high bit for us.
+            result &= ~((long) 0x80 << 8 * (bytes.Length - 1));
+            return -result;
+        }
+
+        public byte[] ToBytes()
+        {
+            if(Value == 0)
+                return Zero;
+
+            var n = Value;
+            var isNegative = n < 0;
+            if (isNegative)
+            {
+                n = -n;
+            }
+
+            var byteList = new List<byte>(9);
+            do
+            {
+                byteList.Add((byte)(n&0xff));
+                n >>= 8;
+            } while (n > 0);
+
+            if ((byteList.Last() & 0x80) != 0)
+            {
+                byteList.Add((byte)(isNegative ? 0x80 : 0x00));
+            }
+            
+            else if(isNegative)
+            {
+                byteList[byteList.Count - 1] |= 0x80;
+            }
+
+            return byteList.ToArray();
+        }
+    }
+}
