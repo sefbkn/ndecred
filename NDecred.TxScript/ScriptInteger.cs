@@ -9,9 +9,11 @@ namespace NDecred.TxScript
     {
         public const int MathOpcodeMaxLength = 4;
         
+        private const int MaxInt32 = int.MaxValue;
+        private const int MinInt32 = int.MinValue + 1;        
         private static readonly byte[] Zero = new byte[0];
         
-        public long Value { get; }
+        private long Value { get; }
 
         public ScriptInteger(long value)
         {
@@ -21,7 +23,8 @@ namespace NDecred.TxScript
         public ScriptInteger(byte[] bytes, bool assertMinimalEncoding, int maxLength)
         {
             if (bytes.Length > maxLength)
-                throw new Exception();
+                throw new ScriptIntegerEncodingException(bytes, 
+                    $"Script integer byte length expected to be <= {maxLength}.  Actual value {bytes.Length}");
             
             if(bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
@@ -102,6 +105,16 @@ namespace NDecred.TxScript
             }
 
             return byteList.ToArray();
+        }
+
+        public static explicit operator int(ScriptInteger d)
+        {
+            if (d.Value > MaxInt32)
+                return MaxInt32;
+            if (d.Value < MinInt32)
+                return MinInt32;
+
+            return (int) d.Value;
         }
     }
 }

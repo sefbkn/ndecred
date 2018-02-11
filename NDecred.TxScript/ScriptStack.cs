@@ -26,9 +26,9 @@ namespace NDecred.TxScript
             return this;
         }
 
-        public ScriptInteger PopInteger(int maxValue)
+        public int PopInt32()
         {
-            return new ScriptInteger(Stack.Pop(), maxValue);
+            return (int) new ScriptInteger(Stack.Pop(), true, ScriptInteger.MathOpcodeMaxLength);
         }
 
         public byte PopByte()

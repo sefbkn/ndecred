@@ -26,7 +26,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine();
             engine.Run(opCodes);
             
-            Assert.Equal(3, engine.DataStack.PopInteger(4).Value);
+            Assert.Equal(3, engine.DataStack.PopInt32());
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine();
             engine.Run(opCodes);
             
-            Assert.Equal(2, engine.DataStack.PopInteger(4).Value);
+            Assert.Equal(2, engine.DataStack.PopInt32());
         }
         
         [Fact]
@@ -75,8 +75,8 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine();
             engine.Run(opCodes);
             
-            Assert.Equal(8, engine.DataStack.PopInteger(4).Value);
-            Assert.Equal(6, engine.DataStack.PopInteger(4).Value);            
+            Assert.Equal(8, engine.DataStack.PopInt32());
+            Assert.Equal(6, engine.DataStack.PopInt32());            
         }
     }
 }
