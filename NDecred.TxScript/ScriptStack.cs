@@ -15,17 +15,21 @@ namespace NDecred.TxScript
         {
             Stack = new Stack<byte[]>();
             if(Stack.Any(b => b.Length > MaxByteArrayLength))
-                throw new InvalidOperationException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
+                throw new ScriptException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
         }
 
-        public ScriptStack Push(byte[] data)
+        public void Push(byte[] data)
         {
             if(data.Length > MaxByteArrayLength)
-                throw new InvalidOperationException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
+                throw new ScriptException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
             Stack.Push(data);
-            return this;
         }
 
+        public byte[] PopBytes()
+        {
+            return Stack.Pop();
+        }
+        
         public int PopInt32()
         {
             return (int) new ScriptInteger(Stack.Pop(), true, ScriptInteger.MathOpcodeMaxLength);
@@ -35,7 +39,7 @@ namespace NDecred.TxScript
         {
             var val = Stack.Pop();
             if(val.Length != 1)
-                throw new InvalidOperationException("Expected value of length 1 to be on stack");
+                throw new ScriptException("Expected value of length 1 to be on stack");
             return val[0];
         }
 

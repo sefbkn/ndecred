@@ -1,5 +1,19 @@
-﻿namespace NDecred.TxScript
+﻿using System;
+using System.Linq;
+
+namespace NDecred.TxScript
 {
+	public class OpCodeAttribute : Attribute
+	{
+		public int Length { get; set; }
+		public string DisplayName { get; set; }
+
+		public OpCodeAttribute(int length)
+		{
+			
+		}
+	}
+	
 	// Enum declarations directly copied from dcrd
 	// https://github.com/decred/dcrd/tree/master/txscript/opcode.go
     public enum OpCode : byte
@@ -268,13 +282,25 @@
 	
 	public static class OpCodeUtil
 	{
+		private static readonly OpCode[] Conditionals =
+		{
+			OpCode.OP_VERIF,
+			OpCode.OP_VERNOTIF,
+			OpCode.OP_IF,
+			OpCode.OP_NOTIF,
+			OpCode.OP_ELSE,
+			OpCode.OP_ENDIF
+		};
+		
 		public static bool IsConditional(this OpCode opCode)
 		{
-			return opCode == OpCode.OP_IF ||
-			       opCode == OpCode.OP_NOTIF ||
-			       opCode == OpCode.OP_ELSE ||
-			       opCode == OpCode.OP_ENDIF;
+			return Conditionals.Contains(opCode);
+		}
+		
+		public static bool IsPushDataOpCode(this OpCode opCode)
+		{
+			var val = (byte) opCode;
+			return val >= 0x01 && val <= 0x4b; // [1,75]
 		}
 	}
-
 }

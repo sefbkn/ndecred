@@ -6,31 +6,36 @@ namespace NDecred.TxScript
 {
     public partial class ScriptEngine
     {
-        private readonly Dictionary<OpCode, Action<ScriptEngine>> _opCodeLookup;
+        private readonly Dictionary<OpCode, Action> _opCodeLookup;
+        
+        public int InstructionPointer { get; private set; }
+        
+        public Script Script { get; }
         public ScriptStack DataStack { get; }
         public BranchStack BranchStack { get; }
 
-        public ScriptEngine(ScriptStack data = null, BranchStack branch = null)
+        public ScriptEngine(Script script, ScriptStack data = null, BranchStack branch = null)
         {
+            Script = script;
             BranchStack = branch ?? new BranchStack();
             DataStack = data ?? new ScriptStack();
-            _opCodeLookup = new Dictionary<OpCode, Action<ScriptEngine>>();
+            _opCodeLookup = new Dictionary<OpCode, Action>();
             InitializeOpCodeDictionary();
         }
         
         /// <summary>
         /// Executes a sequence of instructions, taking branching logic into account.
         /// </summary>
-        /// <param name="instructions"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public void Run(OpCode[] instructions)
+        public void Run()
         {
-            foreach (var opCode in instructions)
+            while (InstructionPointer < Script.Bytes.Length)
             {
+                var opCode = (OpCode) Script.Bytes[InstructionPointer];
                 var branchOp = BranchStack.Peek();
                 var canExecute = branchOp == BranchOption.True || opCode.IsConditional();
                 if (!canExecute) continue;
                 Execute(opCode);
+                InstructionPointer++;
             }
 
             if (BranchStack.Count > 1)
@@ -41,9 +46,38 @@ namespace NDecred.TxScript
         
         public void InitializeOpCodeDictionary()
         {
-            _opCodeLookup.Add(OpCode.OP_0, OpFalse);
-            _opCodeLookup.Add(OpCode.OP_1NEGATE, engine => OpPush(-1));
+            var collection = new (OpCode op, Action action)[]
+            {
+                (OpCode.OP_0, OpFalse),
+                (OpCode.OP_1NEGATE, () => OpPush(-1)),
+                (OpCode.OP_VER, () => OpReserved(OpCode.OP_VER)),
+                (OpCode.OP_VERIF, () => OpReserved(OpCode.OP_VERIF)),
+                (OpCode.OP_VERNOTIF, () => OpReserved(OpCode.OP_VERNOTIF)),
+                (OpCode.OP_NOP, OpNop),
+                (OpCode.OP_IF, OpIf),
+                (OpCode.OP_NOTIF, OpNotIf),
+                (OpCode.OP_ELSE, OpElse),
+                (OpCode.OP_ENDIF, OpEndIf),
+                (OpCode.OP_VERIFY, OpVerify),
+                (OpCode.OP_RETURN, OpReturn),
+                (OpCode.OP_PUSHDATA1, () => OpPushData(OpCode.OP_PUSHDATA1)),
+                (OpCode.OP_PUSHDATA2, () => OpPushData(OpCode.OP_PUSHDATA2)),
+                (OpCode.OP_PUSHDATA4, () => OpPushData(OpCode.OP_PUSHDATA4)),
+            };
+            
+            foreach(var opCode in collection)
+                _opCodeLookup.Add(opCode.op, opCode.action);
 
+
+            // OpCodes [0x01, 0x4b] read the next n bytes from
+            // the script as data, and push it on the stack.
+            for (byte code = 0x01; code <= 0x4b; code++)
+            {
+                var opCode = (OpCode) code;
+                var length = code;
+                _opCodeLookup.Add(opCode, () => OpPushBytes(length));
+            }
+            
             // Opcode with values [0x51-0x60]
             // are aliased as OP_1, OP_2, ... OP_N.
             // Each instruction pushes its N value onto the stack.            
@@ -51,17 +85,8 @@ namespace NDecred.TxScript
             {
                 var opCode = (OpCode) code;
                 var value = (byte)(code - 0x50);
-                _opCodeLookup.Add(opCode, engine => OpPush(value));
+                _opCodeLookup.Add(opCode, () => OpPush(value));
             }
-
-            _opCodeLookup.Add(OpCode.OP_NOP, OpNop);
-            _opCodeLookup.Add(OpCode.OP_VER, _ => OpReserved(OpCode.OP_VER));
-            _opCodeLookup.Add(OpCode.OP_IF, OpIf);
-            _opCodeLookup.Add(OpCode.OP_NOTIF, OpNotIf);
-            _opCodeLookup.Add(OpCode.OP_ELSE, OpElse);
-            _opCodeLookup.Add(OpCode.OP_ENDIF, OpEndIf);
-            _opCodeLookup.Add(OpCode.OP_VERIFY, _ => OpVerify());
-            
 
             // Opcodes with values [193, 249]
             // are "unknown", and do nothing.
@@ -76,8 +101,16 @@ namespace NDecred.TxScript
         {
             if (!_opCodeLookup.TryGetValue(opCode, out var action))
                 throw new ScriptSyntaxError($"Attempted to execute unknown op code 0x{(byte)opCode:X}");
-            
-            action(this);
+
+            try
+            {
+                action();
+            }
+            catch (EarlyReturnException e)
+            {
+                Console.Write(e.Message);
+                throw;
+            }
         }
     }
 }
