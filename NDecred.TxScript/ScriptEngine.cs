@@ -70,7 +70,27 @@ namespace NDecred.TxScript
                 (OpCode.OP_RESERVED, () => OpReserved(OpCode.OP_RESERVED)),
                 
                 (OpCode.OP_TOALTSTACK, OpToAltStack),
-                (OpCode.OP_FROMALTSTACK, OpFromAltStack)
+                (OpCode.OP_FROMALTSTACK, OpFromAltStack),
+                (OpCode.OP_IFDUP, OpIfDup),
+                (OpCode.OP_DEPTH, OpDepth),
+                (OpCode.OP_DROP, OpDrop),
+                (OpCode.OP_DUP, OpDup),
+                (OpCode.OP_NIP, OpNip),
+                (OpCode.OP_OVER, OpOver),
+                (OpCode.OP_PICK, OpPick),
+                (OpCode.OP_ROLL, OpRoll),
+                (OpCode.OP_ROT, OpRot),
+                (OpCode.OP_SWAP, OpSwap),
+                (OpCode.OP_TUCK, OpTuck),
+                (OpCode.OP_2DROP, Op2Drop),
+                (OpCode.OP_2DUP, Op2Dup),
+                (OpCode.OP_3DUP, Op3Dup),
+
+                (OpCode.OP_2OVER, Op2Over),
+                (OpCode.OP_2ROT, Op2Rot),
+                (OpCode.OP_2SWAP, Op2Swap),
+
+
             };
             
             foreach(var opCode in collection)

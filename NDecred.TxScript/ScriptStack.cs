@@ -4,48 +4,43 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
-    public class ScriptStack
+    public class ScriptStack : List<byte[]>
     {
         public const int MaxByteArrayLength = 520;
         
-        private Stack<byte[]> Stack { get; }
-        public int Count => Stack.Count;
-        
-        public ScriptStack()
+        public void Push(ScriptInteger scriptInteger)
         {
-            Stack = new Stack<byte[]>();
-            if(Stack.Any(b => b.Length > MaxByteArrayLength))
-                throw new ScriptException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
+            Push(scriptInteger.ToBytes());
         }
 
         public void Push(byte[] data)
         {
             if(data.Length > MaxByteArrayLength)
                 throw new ScriptException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
-            Stack.Push(data);
+            
+            this.Insert(0, data);
         }
 
-        public byte[] PopBytes()
+        public byte[] Pop()
         {
-            return Stack.Pop();
+            var value = this[0];
+            RemoveAt(0);
+            return value;
+        }
+
+        public byte[] Peek()
+        {
+            return this[0];
         }
         
         public int PopInt32()
         {
-            return (int) new ScriptInteger(Stack.Pop(), true, ScriptInteger.MathOpcodeMaxLength);
-        }
-
-        public byte PopByte()
-        {
-            var val = Stack.Pop();
-            if(val.Length != 1)
-                throw new ScriptException("Expected value of length 1 to be on stack");
-            return val[0];
+            return (int) new ScriptInteger(Pop(), true, ScriptInteger.MathOpcodeMaxLength);
         }
 
         public bool PopBool()
         {
-            var val = Stack.Pop();
+            var val = Pop();
 
             // Empty value, then false
             if (val.Length == 0)

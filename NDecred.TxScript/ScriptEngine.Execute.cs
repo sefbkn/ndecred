@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NDecred.TxScript
@@ -157,12 +158,128 @@ namespace NDecred.TxScript
 
         private void OpToAltStack()
         {
-            AltStack.Push(MainStack.PopBytes());
+            AltStack.Push(MainStack.Pop());
         }
         
         private void OpFromAltStack()
         {
-            MainStack.Push(AltStack.PopBytes());
+            MainStack.Push(AltStack.Pop());
+        }
+
+        private void OpIfDup()
+        {
+            var bytes = MainStack.Peek();
+            
+            var scriptInt = new ScriptInteger(bytes, false, bytes.Length);
+            if ((int) scriptInt == 0)
+                return;
+            
+            MainStack.Push(bytes);
+        }
+
+        private void OpDepth()
+        {
+            var bytes = new ScriptInteger(MainStack.Count).ToBytes();
+            MainStack.Push(bytes);
+        }
+
+        private void OpDrop()
+        {
+            MainStack.Pop();
+        }
+
+        private void OpDup()
+        {
+            MainStack.Push(MainStack[0]);
+        }
+
+        private void OpNip()
+        {
+            MainStack.RemoveAt(1);
+        }
+        
+        private void OpOver()
+        {
+            MainStack.Push(MainStack[1]);
+        }
+
+        private void OpPick()
+        {
+            var n = MainStack.PopInt32();
+            MainStack.Push(MainStack[n]);
+        }
+
+        private void OpRoll()
+        {
+            var n = MainStack.PopInt32();
+            var val = MainStack[n];
+
+            MainStack.RemoveAt(n);
+            MainStack.Push(val);
+        }
+
+        private void OpRot()
+        {
+            var rotated = new[]
+            {
+                MainStack[1],
+                MainStack[2],
+                MainStack[0]
+            };
+            
+            MainStack.RemoveRange(0, 3);
+            MainStack.InsertRange(0, rotated);
+        }
+        
+        private void OpSwap()
+        {
+            var swapped = new[]
+            {
+                MainStack[1],
+                MainStack[0]
+            };
+            
+            MainStack.RemoveRange(0, 2);
+            MainStack.InsertRange(0, swapped);
+        }
+
+        private void OpTuck()
+        {
+            MainStack.Insert(2, MainStack[0]);
+        }
+
+        private void Op2Drop()
+        {
+            MainStack.RemoveRange(0, 2);
+        }
+
+        private void Op2Dup()
+        {
+            MainStack.InsertRange(0, MainStack.Take(2));
+        }
+
+        private void Op3Dup()
+        {
+            MainStack.InsertRange(0, MainStack.Take(3));
+        }
+
+        private void Op2Over()
+        {
+            MainStack.InsertRange(0, MainStack.Skip(2).Take(2));
+        }
+
+        private void Op2Rot()
+        {
+            var values = MainStack.Skip(4).Take(2).ToArray();
+            MainStack.RemoveRange(4, 2);
+            MainStack.InsertRange(0, values);
+        }
+
+        private void Op2Swap()
+        {
+            var top = MainStack.Take(2).ToArray();      
+            MainStack.RemoveRange(0, 2);
+            MainStack.InsertRange(2, top);
         }
     }
 }

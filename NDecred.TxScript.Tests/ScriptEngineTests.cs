@@ -10,6 +10,34 @@ namespace NDecred.TxScript.Tests
         public ScriptEngineTests()
         {
         }
+        
+        [Fact]
+        public void Run_OpIfDup_DuplicatesIfNotZero()
+        {
+            var tests = new(bool shouldDuplicate, byte[] bytes)[]
+            {
+                (true, new byte[]{1}),
+                (true, new byte[]{1,2,3,4,5,6,0,0,0}),
+                (false, new byte[]{}),
+                (false, new byte[]{0})
+            };
+
+            foreach (var test in tests)
+            {
+                var stack = new ScriptStack();
+                stack.Push(test.bytes);
+                
+                var script = new Script(new[]{OpCode.OP_IFDUP});
+                var engine = new ScriptEngine(script, stack);
+                engine.Run();
+
+                if (test.shouldDuplicate)
+                    Assert.Equal(2, engine.MainStack.Count);
+                else
+                    Assert.Equal(1, engine.MainStack.Count);
+            }            
+        }
+
 
         [Fact]
         public void Run_OpFromAltStack_PushesValueFromAltStackToMainStack()
@@ -22,7 +50,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script, stack);
             engine.Run();
             
-            Assert.Equal(expected, (IEnumerable<byte>)engine.MainStack.PopBytes());
+            Assert.Equal(expected, (IEnumerable<byte>)engine.MainStack.Pop());
         }
 
         [Fact]
@@ -36,7 +64,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script, stack);
             engine.Run();
             
-            Assert.Equal(expected, (IEnumerable<byte>)engine.AltStack.PopBytes());
+            Assert.Equal(expected, (IEnumerable<byte>)engine.AltStack.Pop());
         }
         
         [Fact]
@@ -67,7 +95,7 @@ namespace NDecred.TxScript.Tests
                 var engine = new ScriptEngine(script);
                 engine.Run();
 
-                var readBytes = engine.MainStack.PopBytes();
+                var readBytes = engine.MainStack.Pop();
                 
                 Assert.Equal(rawScript.Length, engine.InstructionPointer);
                 Assert.Equal(data.Length, readBytes.Length);

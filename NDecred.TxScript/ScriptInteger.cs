@@ -59,7 +59,6 @@ namespace NDecred.TxScript
 
         private static long FromBytes(byte[] bytes)
         {            
-            
             long result = 0;
             
             // If the leading bit is set, the number is negative.
