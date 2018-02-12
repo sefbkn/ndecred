@@ -11,7 +11,7 @@ namespace NDecred.TxScript
         
         private void OpFalse()
         {
-            DataStack.Push(new byte[0]);
+            MainStack.Push(new byte[0]);
         }
 
         private void OpPushBytes(int length)
@@ -27,7 +27,7 @@ namespace NDecred.TxScript
             if (bytes.Length > length)
                 throw new ScriptException($"Somehow read more than {length} bytes.");
 
-            DataStack.Push(bytes);
+            MainStack.Push(bytes);
 
             // Move the instruction pointer forward to the end of the data.
             // It will be incremented once more, in the Run method.
@@ -74,13 +74,13 @@ namespace NDecred.TxScript
             offset += takeBytes;
             InstructionPointer += offset - 1;
 
-            DataStack.Push(bytes);
+            MainStack.Push(bytes);
         }
 
         // Push a single byte onto the stack
         private void OpPush(byte value)
         {
-            DataStack.Push(new[]{value});
+            MainStack.Push(new[]{value});
         }
 
         // Push an integer onto the stack.
@@ -88,7 +88,7 @@ namespace NDecred.TxScript
         private void OpPush(int value)
         {
             var scriptInteger = new ScriptInteger(value);
-            DataStack.Push(scriptInteger.ToBytes());
+            MainStack.Push(scriptInteger.ToBytes());
         }
 
         private void OpIf()
@@ -100,7 +100,7 @@ namespace NDecred.TxScript
                     BranchStack.Push(BranchOption.Skip);
                     break;
                 case BranchOption.True:
-                    BranchStack.Push(DataStack.PopBool() ? BranchOption.True : BranchOption.False);
+                    BranchStack.Push(MainStack.PopBool() ? BranchOption.True : BranchOption.False);
                     break;
             }
         }
@@ -114,7 +114,7 @@ namespace NDecred.TxScript
                     BranchStack.Push(BranchOption.Skip);
                     break;
                 case BranchOption.True:
-                    BranchStack.Push(!DataStack.PopBool() ? BranchOption.True : BranchOption.False);
+                    BranchStack.Push(!MainStack.PopBool() ? BranchOption.True : BranchOption.False);
                     break;
             }
         }
@@ -141,7 +141,7 @@ namespace NDecred.TxScript
 
         private void OpVerify()
         {
-            if (!DataStack.PopBool())
+            if (!MainStack.PopBool())
                 throw new VerifyFailedException();
         }
         
@@ -153,6 +153,16 @@ namespace NDecred.TxScript
         private void OpReserved(OpCode opCode)
         {
             throw new ReservedOpCodeException(opCode);
+        }
+
+        private void OpToAltStack()
+        {
+            AltStack.Push(MainStack.PopBytes());
+        }
+        
+        private void OpFromAltStack()
+        {
+            MainStack.Push(AltStack.PopBytes());
         }
     }
 }

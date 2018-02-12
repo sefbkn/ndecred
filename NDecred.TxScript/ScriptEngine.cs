@@ -11,15 +11,19 @@ namespace NDecred.TxScript
         public int InstructionPointer { get; private set; }
         
         public Script Script { get; }
-        public ScriptStack DataStack { get; }
+        
+        public ScriptStack AltStack { get; }
+        public ScriptStack MainStack { get; }
         public BranchStack BranchStack { get; }
 
-        public ScriptEngine(Script script, ScriptStack data = null, BranchStack branch = null)
+        public ScriptEngine(Script script, ScriptStack mainStack = null, BranchStack branchStack = null)
         {
             Script = script;
-            BranchStack = branch ?? new BranchStack();
-            DataStack = data ?? new ScriptStack();
+            MainStack = mainStack ?? new ScriptStack();
+            BranchStack = branchStack ?? new BranchStack();
+            AltStack = new ScriptStack();
             _opCodeLookup = new Dictionary<OpCode, Action>();
+
             InitializeOpCodeDictionary();
         }
         
@@ -63,11 +67,14 @@ namespace NDecred.TxScript
                 (OpCode.OP_PUSHDATA1, () => OpPushData(OpCode.OP_PUSHDATA1)),
                 (OpCode.OP_PUSHDATA2, () => OpPushData(OpCode.OP_PUSHDATA2)),
                 (OpCode.OP_PUSHDATA4, () => OpPushData(OpCode.OP_PUSHDATA4)),
+                (OpCode.OP_RESERVED, () => OpReserved(OpCode.OP_RESERVED)),
+                
+                (OpCode.OP_TOALTSTACK, OpToAltStack),
+                (OpCode.OP_FROMALTSTACK, OpFromAltStack)
             };
             
             foreach(var opCode in collection)
                 _opCodeLookup.Add(opCode.op, opCode.action);
-
 
             // OpCodes [0x01, 0x4b] read the next n bytes from
             // the script as data, and push it on the stack.

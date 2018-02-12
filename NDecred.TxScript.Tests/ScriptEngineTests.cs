@@ -12,6 +12,34 @@ namespace NDecred.TxScript.Tests
         }
 
         [Fact]
+        public void Run_OpFromAltStack_PushesValueFromAltStackToMainStack()
+        {
+            var expected = new byte[]{1,2,3};
+            var stack = new ScriptStack();
+            stack.Push(expected);
+            
+            var script = new Script(new[]{OpCode.OP_TOALTSTACK, OpCode.OP_FROMALTSTACK});
+            var engine = new ScriptEngine(script, stack);
+            engine.Run();
+            
+            Assert.Equal(expected, (IEnumerable<byte>)engine.MainStack.PopBytes());
+        }
+
+        [Fact]
+        public void Run_OpToAltStack_PushesValueFromMainStackToAltStack()
+        {
+            var expected = new byte[]{1,2,3};
+            var stack = new ScriptStack();
+            stack.Push(expected);
+            
+            var script = new Script(new[]{OpCode.OP_TOALTSTACK});
+            var engine = new ScriptEngine(script, stack);
+            engine.Run();
+            
+            Assert.Equal(expected, (IEnumerable<byte>)engine.AltStack.PopBytes());
+        }
+        
+        [Fact]
         public void Run_OpPushData_PushesExpectedDataOntoStack()
         {
             var tests = new(OpCode op, byte[] len, IEnumerable<int> data)[]
@@ -39,7 +67,7 @@ namespace NDecred.TxScript.Tests
                 var engine = new ScriptEngine(script);
                 engine.Run();
 
-                var readBytes = engine.DataStack.PopBytes();
+                var readBytes = engine.MainStack.PopBytes();
                 
                 Assert.Equal(rawScript.Length, engine.InstructionPointer);
                 Assert.Equal(data.Length, readBytes.Length);
@@ -82,7 +110,7 @@ namespace NDecred.TxScript.Tests
                 var script = new Script(new[]{opCode});
                 var engine = new ScriptEngine(script);
                 engine.Run();
-                Assert.Equal(index - 0x50, engine.DataStack.PopInt32());
+                Assert.Equal(index - 0x50, engine.MainStack.PopInt32());
             }
         }
 
@@ -102,7 +130,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script);
             engine.Run();
             
-            Assert.Equal(2, engine.DataStack.PopInt32());
+            Assert.Equal(2, engine.MainStack.PopInt32());
         }
         
         [Fact]
@@ -121,7 +149,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script);
             engine.Run();
             
-            Assert.Equal(3, engine.DataStack.PopInt32());
+            Assert.Equal(3, engine.MainStack.PopInt32());
         }
 
         [Fact]
@@ -140,7 +168,7 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script);
             engine.Run();
             
-            Assert.Equal(2, engine.DataStack.PopInt32());
+            Assert.Equal(2, engine.MainStack.PopInt32());
         }
         
         [Fact]
@@ -170,8 +198,8 @@ namespace NDecred.TxScript.Tests
             var engine = new ScriptEngine(script);
             engine.Run();
             
-            Assert.Equal(8, engine.DataStack.PopInt32());
-            Assert.Equal(6, engine.DataStack.PopInt32());            
+            Assert.Equal(8, engine.MainStack.PopInt32());
+            Assert.Equal(6, engine.MainStack.PopInt32());            
         }
     }
 }
