@@ -6,8 +6,15 @@ namespace NDecred.TxScript
 {
     public partial class ScriptEngine
     {
-        private void OpNop()
+        private void OpNop(ParsedOpCode op)
         {
+            if (op.Code.IsUpgradableNop() && Script.Options.DiscourageUpgradableNops)
+                throw new ReservedOpCodeException(op.Code);
+        }
+
+        private void OpDisabled(ParsedOpCode op)
+        {
+            throw new DisabledOpCodeException(op.Code);
         }
         
         private void OpFalse()
@@ -15,73 +22,15 @@ namespace NDecred.TxScript
             MainStack.Push(new byte[0]);
         }
 
-        private void OpPushBytes(int length)
+        private void OpPushBytes(ParsedOpCode op)
         {
             // Read the next length bytes from the execution stack
-            var bytes = Script.Bytes
-                .Skip(InstructionPointer + 1)
-                .Take(length)
-                .ToArray();
-
-            if (bytes.Length < length)
-                throw new ScriptException("Attempted to read more bytes than available in script");
-            if (bytes.Length > length)
-                throw new ScriptException($"Somehow read more than {length} bytes.");
-
-            MainStack.Push(bytes);
-
-            // Move the instruction pointer forward to the end of the data.
-            // It will be incremented once more, in the Run method.
-            InstructionPointer += length;
+            MainStack.Push(op.Data);
         }
 
-        private void OpPushData(OpCode opCode)
+        private void OpPushData(ParsedOpCode op)
         {
-            var offset = InstructionPointer + 1;
-            var scriptBytes = Script.Bytes.Skip(offset);
-            
-            // The number of bytes to read.
-            int takeBytes;
-
-            switch (opCode)
-            {
-                case OpCode.OP_PUSHDATA1:
-                    takeBytes = scriptBytes.First();
-                    offset += 1;
-                    break;
-                case OpCode.OP_PUSHDATA2:
-                    takeBytes = BitConverter.ToInt16(Script.Bytes, offset);
-                    offset += 2;
-                    break;
-                case OpCode.OP_PUSHDATA4:
-                    takeBytes = BitConverter.ToInt32(Script.Bytes, offset);
-                    offset += 4;
-                    break;
-                default:
-                    throw new InvalidOperationException("OpPushData is only valid for OP_PUSHDATA(1|2|4)");
-            }
-
-            if(takeBytes < 0)
-                throw new ScriptException($"Expected positive integer to succeed opcode {opCode}");
-            if(offset + takeBytes > Script.Bytes.Length)
-                throw new ScriptException($"Value succeeding {opCode} would read more bytes than available in script");
-            
-            // Read the next takeBytes bytes from the script and push it on the data stack.
-            var bytes = Script.Bytes
-                .Skip(offset)
-                .Take(takeBytes)
-                .ToArray();
-
-            offset += takeBytes;
-            InstructionPointer += offset - 1;
-
-            MainStack.Push(bytes);
-        }
-
-        // Push a single byte onto the stack
-        private void OpPush(byte value)
-        {
-            MainStack.Push(new[]{value});
+            MainStack.Push(op.Data);
         }
 
         // Push an integer onto the stack.
@@ -151,9 +100,9 @@ namespace NDecred.TxScript
             throw new EarlyReturnException();
         }
 
-        private void OpReserved(OpCode opCode)
+        private void OpReserved(ParsedOpCode op)
         {
-            throw new ReservedOpCodeException(opCode);
+            throw new ReservedOpCodeException(op.Code);
         }
 
         private void OpToAltStack()

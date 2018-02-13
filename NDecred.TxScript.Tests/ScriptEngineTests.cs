@@ -219,7 +219,7 @@ namespace NDecred.TxScript.Tests
                         OpCode.OP_8, // and here
                     OpCode.OP_ENDIF,
                 OpCode.OP_ELSE,
-                    OpCode.OP_10, 
+                    OpCode.OP_16, 
                 OpCode.OP_ENDIF
             });
 
