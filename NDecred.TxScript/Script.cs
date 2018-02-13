@@ -6,8 +6,7 @@ using System.Linq;
 namespace NDecred.TxScript
 {
     /// <summary>
-    /// Receives an enumerable of script data,
-    /// and parses each instruction into a ParsedOpCode.
+    /// Represents operations.
     /// </summary>
     public class Script
     {

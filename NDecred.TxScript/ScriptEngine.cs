@@ -6,9 +6,9 @@ namespace NDecred.TxScript
 {
     public partial class ScriptEngine
     {
+        private bool _hasRun = false;
         private readonly Dictionary<OpCode, Action<ParsedOpCode>> _opCodeLookup;
         
-        public int InstructionPointer { get; private set; }
         
         public Script Script { get; }
         
@@ -32,19 +32,18 @@ namespace NDecred.TxScript
         /// </summary>
         public void Run()
         {
+            if(_hasRun) 
+                throw new InvalidOperationException("Script engine can only be called once.");
+            _hasRun = true;
+            
             foreach (var op in Script.ParsedOpCodes)
             {
                 var branchOp = BranchStack.Peek();
                 var canExecute = branchOp == BranchOption.True || op.Code.IsConditional();
                 if (!canExecute) continue;
                 Execute(op);
-                InstructionPointer++;
             }
             
-            while (InstructionPointer < Script.Bytes.Length)
-            {
-            }
-
             if (BranchStack.Count > 1)
             {
                 throw new ScriptSyntaxError("Script missing OP_ENDIF");

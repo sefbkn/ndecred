@@ -97,7 +97,6 @@ namespace NDecred.TxScript.Tests
 
                 var readBytes = engine.MainStack.Pop();
                 
-                Assert.Equal(rawScript.Length, engine.InstructionPointer);
                 Assert.Equal(data.Length, readBytes.Length);
                 Assert.Equal(data, (IEnumerable<byte>) readBytes);
             }
