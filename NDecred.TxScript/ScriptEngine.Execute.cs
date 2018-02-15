@@ -243,60 +243,6 @@ namespace NDecred.TxScript
             MainStack.Push(bytes);
         }
 
-/*// opcodeSubstr pops off the top two stack elements and interprets them as
-// integers. If the indices indicated exist within the next stack item that is
-// also popped off, return the relevant substring based on the given start and
-// end indexes.
-// Stack transformation: [... x1 x2 x3] -> [... x1[x3:x2]]
-func opcodeSubstr(op *parsedOpcode, vm *Engine) error {
-	v0, err := vm.dstack.PopInt(mathOpCodeMaxScriptNumLen) // x3
-	if err != nil {
-		return err
-	}
-	v1, err := vm.dstack.PopInt(mathOpCodeMaxScriptNumLen) // x2
-	if err != nil {
-		return err
-	}
-	a, err := vm.dstack.PopByteArray() // x1
-	if err != nil {
-		return err
-	}
-	aLen := len(a)
-
-	// Golang uses ints for the indices of slices. Assume that we can get
-	// whatever we need from a slice within the boundaries of an int32
-	// register.
-	v0Recast := int(v0.Int32())
-	v1Recast := int(v1.Int32())
-
-	if aLen == 0 {
-		vm.dstack.PushByteArray(nil)
-		return nil
-	}
-	if v0Recast < 0 || v1Recast < 0 {
-		return ErrSubstrIdxNegative
-	}
-	if v0Recast > aLen {
-		return ErrSubstrIdxOutOfBounds
-	}
-	if v1Recast > aLen {
-		return ErrSubstrIdxOutOfBounds
-	}
-	if v0Recast > v1Recast {
-		return ErrSubstrIdxOutOfBounds
-	}
-
-	// A substr of the same indices return an empty stack item, similar to
-	// Golang.
-	if v0Recast == v1Recast {
-		vm.dstack.PushByteArray(nil)
-		return nil
-	}
-
-	vm.dstack.PushByteArray(a[v0Recast:v1Recast])
-	return nil
-}
-*/
         private void OpSubStr(ParsedOpCode op)
         {
             var startIndex = MainStack.PopInt32();
