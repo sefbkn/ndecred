@@ -5,9 +5,6 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
-    /// <summary>
-    /// Represents operations.
-    /// </summary>
     public class Script
     {
         public byte[] Bytes { get; }
@@ -15,9 +12,7 @@ namespace NDecred.TxScript
         public ParsedOpCode[] ParsedOpCodes { get; }
 
         public Script(IEnumerable<OpCode> opCodes, ScriptOptions options = null) : 
-            this(opCodes.Select(op => (byte) op).ToArray(), options)
-        {
-        }
+            this(opCodes.Select(op => (byte) op).ToArray(), options) { }
         
         public Script(byte[] bytes, ScriptOptions options = null)
         {
@@ -57,6 +52,8 @@ namespace NDecred.TxScript
         /// Parses the opcodes OP_PUSHDATA{1,2,4}
         /// 
         /// These opcodes are followed by a 'length' parameter and a payload of size 'length'.
+        /// The payload is extracted from the script and placed in the ParsedOpCode.Data property,
+        /// and the position in the script "index" is incremented to skip over the processed bytes. 
         /// </summary>
         /// <exception cref="InvalidOperationException">thrown if an opcode is passed that is not an OP_PUSHDATA</exception>
         /// <exception cref="ScriptException">thrown if the payload length succeeding the opcode is invalid for this script.</exception>

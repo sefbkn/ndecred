@@ -228,5 +228,65 @@ namespace NDecred.TxScript.Tests
             Assert.Equal(8, engine.MainStack.PopInt32());
             Assert.Equal(6, engine.MainStack.PopInt32());            
         }
+
+        [Fact]
+        public void ScriptEngine_OpSubStr_ReturnsExpectedValues()
+        {
+            var data = new byte[] { 0, 1, 2, 3, 4 };
+            var tests = new (int startIndex, int endIndexExclusive, byte[] expectedValue, Type exception)[]
+            {
+                // Extracts values, no error
+                (1, 1, new byte[]{}, null),
+                (4, 4, new byte[]{}, null),
+                (0, 1, new byte[]{0}, null),
+                (0, 5, new byte[]{0,1,2,3,4}, null),
+                (0, 4, new byte[]{0,1,2,3}, null),
+                (0, 1, new byte[]{0}, null),
+                (2, 4, new byte[]{2,3}, null),
+                
+                // Behave like go slices.
+                (5, 5, new byte[]{}, null),
+                
+                // Raises exceptions
+                (-1, 2, new byte[]{}, typeof(ScriptException)),
+                (0, -1, new byte[]{}, typeof(ScriptException)),
+                (1, 0, new byte[]{}, typeof(ScriptException)),
+                (5, 6, new byte[]{}, typeof(ScriptException)),
+                (5, 3, new byte[]{}, typeof(ScriptException)),
+
+                // TODO: Subclass ScriptException and make sure expected errors are thrown
+                // in the correct order.
+            };
+
+            foreach (var test in tests)
+            {
+                var script = new Script(new[]
+                {
+                    OpCode.OP_SUBSTR
+                });
+
+                var mainStack = new ScriptStack();
+                mainStack.Push(data);
+                mainStack.Push(new ScriptInteger(test.endIndexExclusive));
+                mainStack.Push(new ScriptInteger(test.startIndex));
+                
+                var engine = new ScriptEngine(script, mainStack);
+
+                if (test.exception != null)
+                {
+                    // Run should thow expected exception, and continue.
+                    Assert.Throws(test.exception, () => engine.Run());
+                    
+                    // There should be no items left on the stack
+                    Assert.False(engine.MainStack.Any());
+                }
+                else
+                {
+                    engine.Run();
+                    var result = engine.MainStack.Pop();
+                    Assert.Equal(test.expectedValue, (IEnumerable<byte>) result);
+                }
+            }
+        }
     }
 }

@@ -89,6 +89,7 @@ namespace NDecred.TxScript
                 n = -n;
             }
 
+            // Shift bytes out 1 at a time.
             var byteList = new List<byte>(9);
             do
             {

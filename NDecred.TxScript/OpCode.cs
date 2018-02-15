@@ -322,6 +322,8 @@ namespace NDecred.TxScript
 			}.Contains(opCode);
 		}
 
+		// Reserved opcodes should cause a running script to fail.
+		// The existence of the opcode does not 
 		public static bool IsReserved(this OpCode code)
 		{
 			return new[]
