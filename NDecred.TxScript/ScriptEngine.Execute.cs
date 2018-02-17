@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using NDecred.Common;
 
 namespace NDecred.TxScript
 {
@@ -479,6 +481,121 @@ namespace NDecred.TxScript
                 throw new ScriptException($"{op.Code} Shift overflow");
 
             MainStack.Push(b >> a);
+        }
+
+        private void OpBoolAnd(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(a != 0 && b != 0 ? 1 : 0);
+        }
+
+        private void OpBoolOr(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(a != 0 || b != 0 ? 1 : 0);
+        }
+
+        private void OpNumEqual(ParsedOpCode op)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(a == b ? 1 : 0);
+        }
+
+        private void OpNumEqualVerify(ParsedOpCode op)
+        {
+            OpNumEqual(op);
+            OpVerify();
+        }
+
+        private void OpNumNotEqual(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(a != b ? 1 : 0);
+        }
+        
+        private void OpLessThan(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(b < a ? 1 : 0);
+        }
+
+        private void OpGreaterThan(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(b > a ? 1 : 0);
+        }
+        
+        private void OpLessThanOrEqual(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(b < a ? 1 : 0);
+        }
+
+        private void OpGreaterThanOrEqual(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(b > a ? 1 : 0);
+        }
+
+        private void OpMin(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(Math.Min(a, b));
+        }
+
+        private void OpMax(ParsedOpCode obj)
+        {
+            var a = MainStack.PopInt32();
+            var b = MainStack.PopInt32();
+            MainStack.Push(Math.Max(a, b));
+        }
+
+        private void OpWithin(ParsedOpCode obj)
+        {
+            var max = MainStack.PopInt32();
+            var min = MainStack.PopInt32();
+            var test = MainStack.PopInt32();
+            
+            MainStack.Push(min <= test && test < max ? 1 : 0);
+        }
+
+        private void OpRipemd160(ParsedOpCode obj)
+        {
+            var value = MainStack.Pop();
+            MainStack.Push(HashUtil.Ripemd160(value));
+        }
+
+        private void OpSha1(ParsedOpCode obj)
+        {
+            var value = MainStack.Pop();
+            MainStack.Push(HashUtil.Sha1(value));
+        }
+
+        private void OpBlake256(ParsedOpCode obj)
+        {
+            var value = MainStack.Pop();
+            MainStack.Push(HashUtil.Blake256(value));
+        }
+
+        private void OpHash160(ParsedOpCode obj)
+        {
+            var value = MainStack.Pop();
+            MainStack.Push(HashUtil.Ripemd160(HashUtil.Blake256(value)));
+        }
+
+        private void OpHash256(ParsedOpCode obj)
+        {
+            var value = MainStack.Pop();
+            MainStack.Push(HashUtil.Blake256D(value));
         }
     }
 }

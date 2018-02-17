@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using BlakeSharp;
 using Org.BouncyCastle.Crypto.Digests;
@@ -17,6 +18,14 @@ namespace NDecred.Common
             return Sha256(Sha256(data));
         }
 
+        public static byte[] Sha1(byte[] data)
+        {
+            using (var sha1 = new SHA1Managed())
+            {
+                return sha1.ComputeHash(data);
+            }
+        }
+
         public static byte[] Ripemd160(byte[] data)
         {
             var ripemd = new RipeMD160Digest();
@@ -28,6 +37,9 @@ namespace NDecred.Common
 
         public static byte[] Blake256(params byte[][] data)
         {
+            if(data == null || data.Length == 0)
+                throw new ArgumentNullException(nameof(data));
+            
             var combined = data.SelectMany(arr => arr);
             return Blake256(combined.ToArray());
         }
