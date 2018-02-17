@@ -21,6 +21,12 @@ namespace NDecred.TxScript
             this.Insert(0, data);
         }
 
+        public void Push(bool condition)
+        {
+            var data = condition ? new byte[] {1} : new byte[0];
+            Push(data);
+        }
+
         public byte[] Pop()
         {
             var value = this[0];

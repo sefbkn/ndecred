@@ -110,6 +110,11 @@ namespace NDecred.TxScript
             return byteList.ToArray();
         }
 
+        public static implicit operator ScriptInteger(int d)
+        {
+            return new ScriptInteger(d);
+        }
+
         public static explicit operator int(ScriptInteger d)
         {
             if (d.Value > MaxInt32)
