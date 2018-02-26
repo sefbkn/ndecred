@@ -4,13 +4,6 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
-    public enum BranchOption
-    {
-        False = 0,
-        True,
-        Skip
-    }
-    
     /// <summary>
     /// Represents a stack of BranchOp flags.  Used to determine whether
     /// or not a particular branch of code should run.  Allows nested branches
@@ -30,16 +23,13 @@ namespace NDecred.TxScript
         public void Discard()
         {
             if(BranchOpStack.Count == 1)
-                throw new ScriptSyntaxError("Syntax error. Unbalanced branch instruction encountered");
+                throw new ScriptSyntaxErrorException("Unbalanced branch instruction encountered");
             
             BranchOpStack.Pop();
         }
 
         public BranchOption Peek()
         {
-            if(!BranchOpStack.Any())
-                throw new ScriptSyntaxError("Attempted to perform branch peek without branch information available");
-            
             return BranchOpStack.Peek();
         }
 

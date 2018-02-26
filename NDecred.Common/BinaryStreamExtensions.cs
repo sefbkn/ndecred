@@ -94,14 +94,14 @@ namespace NDecred.Common
 
         public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
         {
-            var length = (ulong) bytes.Length;
+            var length = (ulong) (bytes?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(bytes);
         }
 
         public static void WriteVariableLengthString(this BinaryWriter writer, string str)
         {
-            var length = (ulong) str.Length;
+            var length = (ulong) (str?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(str);
         }

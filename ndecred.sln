@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDecred.TxScript", "NDecred
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NDecred.TxScript.Tests", "NDecred.TxScript.Tests\NDecred.TxScript.Tests.csproj", "{11BA0282-C2E0-43B4-928C-553AA3157D69}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bridge", "Bridge", "{F865B701-C542-440F-9D58-B84F6176C7FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

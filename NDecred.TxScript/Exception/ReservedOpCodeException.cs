@@ -4,7 +4,7 @@
     {
         public OpCode OpCode { get; }
         
-        public ReservedOpCodeException(OpCode opCode) : base($"Attempted to execute reserved op code 0x{opCode:X}")
+        public ReservedOpCodeException(OpCode opCode) : base("Attempted to call reserved opcode")
         {
             OpCode = opCode;
         }

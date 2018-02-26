@@ -7,5 +7,14 @@
       <Project>{5202A495-EFE7-4642-9848-37E8BB4A56B8}</Project>
       <Name>NDecred.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NDecred.Wire\NDecred.Wire.csproj">
+      <Project>{45E81B62-8910-4237-A6C0-84EE3DD5C950}</Project>
+      <Name>NDecred.Wire</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\.nuget\packages\bouncycastle.netcore\1.8.1.3\lib\netstandard1.3\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

@@ -1,21 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NDecred.Wire;
 
 namespace NDecred.TxScript
 {
     public partial class ScriptEngine
     {
+        private readonly MsgTx _transaction;
+        private readonly int _transactionIndex;
         private readonly Dictionary<OpCode, Action<ParsedOpCode>> _opCodeLookup;
 
         private bool _hasRun;
         private readonly object _lock = new object();
-        private Script Script { get; }
-        private BranchStack BranchStack { get; }
 
-        public ScriptEngine(Script script, ScriptStack mainStack = null, BranchStack branchStack = null)
+        public ScriptEngine(MsgTx transaction, int transactionIndex, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
         {
+            _transaction = transaction;
+            _transactionIndex = transactionIndex;
             Script = script;
+            Options = options ?? new ScriptOptions();
             MainStack = mainStack ?? new ScriptStack();
             BranchStack = branchStack ?? new BranchStack();
             AltStack = new ScriptStack();
@@ -27,6 +31,10 @@ namespace NDecred.TxScript
         public ScriptStack AltStack { get; }
         public ScriptStack MainStack { get; }
         
+        private Script Script { get; }
+        private ScriptOptions Options { get; }
+        private BranchStack BranchStack { get; }
+
         /// <summary>
         /// Executes a sequence of instructions, taking branching logic into account.
         /// </summary>
@@ -43,34 +51,36 @@ namespace NDecred.TxScript
                 _hasRun = true;
             }
 
-            foreach (var op in Script.ParsedOpCodes)
+            for (var instructionPointer = 0; instructionPointer < Script.ParsedOpCodes.Length; instructionPointer++)
             {
+                var op = Script.ParsedOpCodes[instructionPointer];
                 var branchOp = BranchStack.Peek();
-                
+
                 // Ensure that disabled and reserved opcodes are executed.
-                var canExecute = 
-                    branchOp == BranchOption.True 
-                 || op.Code.IsConditional()
-                 || op.Code.IsDisabled()
-                 || op.Code.IsReserved();
-                
+                var canExecute =
+                    branchOp == BranchOption.True
+                    || op.Code.IsConditional()
+                    || op.Code.IsDisabled()
+                    || op.Code.IsReserved();
+
                 if (!canExecute) continue;
                 Execute(op);
             }
-            
+
             if (BranchStack.Count > 1)
             {
-                throw new ScriptSyntaxError("Script missing OP_ENDIF");
+                throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
             }
         }
         
         private void Execute(ParsedOpCode op)
         {
             if (!_opCodeLookup.TryGetValue(op.Code, out var action))
-                throw new ScriptSyntaxError($"Attempted to execute unknown op code 0x{(byte)op.Code:X}");
+                throw new ScriptSyntaxErrorException(($"Attempted to execute unknown op code 0x{(byte)op.Code:X}"));
             
             if(op.Code.IsReserved())
                 throw new ReservedOpCodeException(op.Code);
+
             
             action(op);
         }
@@ -159,7 +169,28 @@ namespace NDecred.TxScript
                 (OpCode.OP_SHA1              , OpSha1),
                 (OpCode.OP_BLAKE256          , OpBlake256),
                 (OpCode.OP_HASH160           , OpHash160),
-                (OpCode.OP_HASH256           , OpHash256) 
+                (OpCode.OP_HASH256           , OpHash256),
+                (OpCode.OP_CHECKSIG            , OpCheckSig),
+                (OpCode.OP_CHECKSIGVERIFY      , OpCheckSigVerify),
+                (OpCode.OP_CHECKMULTISIG       , e => throw new NotImplementedException()),
+                (OpCode.OP_CHECKMULTISIGVERIFY , e => throw new NotImplementedException()),
+                (OpCode.OP_CHECKLOCKTIMEVERIFY , e => throw new NotImplementedException()), // OpCode.OP_NOP2
+                (OpCode.OP_CHECKSEQUENCEVERIFY , e => throw new NotImplementedException()), // OpCode.OP_NOP3
+                (OpCode.OP_NOP1                , OpNop),
+                (OpCode.OP_NOP4                , OpNop),
+                (OpCode.OP_NOP5                , OpNop),
+                (OpCode.OP_NOP6                , OpNop),
+                (OpCode.OP_NOP7                , OpNop),
+                (OpCode.OP_NOP8                , OpNop),
+                (OpCode.OP_NOP9                , OpNop),
+                (OpCode.OP_NOP10               , OpNop),
+                (OpCode.OP_SSTX                , OpNop),
+                (OpCode.OP_SSGEN               , OpNop),
+                (OpCode.OP_SSRTX               , OpNop),
+                (OpCode.OP_SSTXCHANGE          , OpNop),
+                (OpCode.OP_CHECKSIGALT         , e => throw new NotImplementedException()),
+                (OpCode.OP_CHECKSIGALTVERIFY   , e => throw new NotImplementedException()),
+                (OpCode.OP_SHA256              , OpSha256),
             };
             
             foreach(var opCode in collection)
@@ -171,6 +202,8 @@ namespace NDecred.TxScript
                 _opCodeLookup.Add(code, OpPushBytes);
             for (var code = OpCode.OP_UNKNOWN193; code <= OpCode.OP_UNKNOWN248; code++)
                 _opCodeLookup.Add(code, OpNop);
+            for(var code = OpCode.OP_INVALID249; code <= OpCode.OP_INVALIDOPCODE; code++)
+                _opCodeLookup.Add(code, OpInvalid);
         }
     }
 }

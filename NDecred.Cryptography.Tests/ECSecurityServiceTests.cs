@@ -39,7 +39,7 @@ namespace NDecred.Cryptography.Tests
         {
             var privateKey = new ECPrivateSecurityService(_privateKey);
             var messageHash = HashUtil.Blake256(_message);
-            var signature = privateKey.Sign(messageHash).ToDer();
+            var signature = privateKey.Sign(messageHash).Serialize();
 
             Assert.Equal(_signature, signature);
         }

@@ -2,22 +2,22 @@
 using System.Runtime.Serialization;
 
 namespace NDecred.TxScript
-{
-    public class ScriptException : Exception
+{   
+    public abstract class ScriptException : Exception
     {
-        public ScriptException()
-        {    
+        protected ScriptException()
+        {
         }
-        
+
         protected ScriptException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
 
-        public ScriptException(string message) : base(message)
+        protected ScriptException(string message) : base(message)
         {
         }
 
-        public ScriptException(string message, Exception innerException) : base(message, innerException)
+        protected ScriptException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }

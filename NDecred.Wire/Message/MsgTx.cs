@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using NDecred.Common;
 
 namespace NDecred.Wire
@@ -123,5 +125,10 @@ namespace NDecred.Wire
         }
 
         public override MsgCommand Command => MsgCommand.Tx;
+
+        public byte[] TxHash()
+        {
+            return GetHash(TxSerializeType.NoWitness);
+        }
     }
 }

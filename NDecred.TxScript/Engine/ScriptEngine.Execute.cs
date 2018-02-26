@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using NDecred.Common;
+using NDecred.Cryptography;
+using NDecred.Wire;
+using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Crypto.EC;
 
 namespace NDecred.TxScript
 {
@@ -10,7 +15,7 @@ namespace NDecred.TxScript
     {
         private void OpNop(ParsedOpCode op)
         {
-            if (op.Code.IsUpgradableNop() && Script.Options.DiscourageUpgradableNops)
+            if (op.Code.IsUpgradableNop())
                 throw new ReservedOpCodeException(op.Code);
         }
 
@@ -237,10 +242,7 @@ namespace NDecred.TxScript
         {
             var first = MainStack.Pop();
             var second = MainStack.Pop();
-            
-            if(first.Length + second.Length > Script.Options.MaxScriptElementSize)
-                throw new StackElementTooBigException(op.Code);
-            
+                        
             var bytes = second.Concat(first).ToArray();
             MainStack.Push(bytes);
         }
@@ -254,11 +256,11 @@ namespace NDecred.TxScript
             if(array.Length == 0)
                 MainStack.Push(new byte[0]);
             else if(startIndex < 0 || endIndexExclusive < 0)
-                throw new ScriptException($"{op.Code}: Negative substring index");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Negative substring index");
             else if(startIndex > array.Length || endIndexExclusive > array.Length)
-                throw new ScriptException($"{op.Code}: Substring index out of bounds");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Substring index out of bounds");
             else if(startIndex > endIndexExclusive)
-                throw new ScriptException($"{op.Code}: Start index is greater than end index");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Start index is greater than end index");
             else if(startIndex == endIndexExclusive)
                 MainStack.Push(new byte[0]);
             else
@@ -276,11 +278,11 @@ namespace NDecred.TxScript
             if(data.Length == 0 || high == 0)
                 MainStack.Push(new byte[0]);
             else if(high < 0)
-                throw new ScriptException($"{op.Code}: upper boundary less than zero");
+                throw new ScriptIndexOutOfRangeException(op.Code, "upper boundary less than zero");
             else if(high > data.Length)
-                throw new ScriptException($"{op.Code}: upper boundary greater than array length");
+                throw new ScriptIndexOutOfRangeException(op.Code, "upper boundary greater than array length");
             else if(high < 0)
-                throw new ScriptException($"{op.Code}: upper boundary less than zero");
+                throw new ScriptIndexOutOfRangeException(op.Code, "upper boundary less than zero");
             else
             {
                 var bytes = data.Take(high).ToArray();
@@ -296,9 +298,9 @@ namespace NDecred.TxScript
             if (data.Length == 0 || index == data.Length)
                 MainStack.Push(new byte[0]);
             else if(index < 0)
-                throw new ScriptException($"{op.Code}: upper boundary less than zero");
+                throw new ScriptIndexOutOfRangeException(op.Code, "upper boundary less than zero");
             else if(index > data.Length)
-                throw new ScriptException($"{op.Code}: upper boundary greater than array length");
+                throw new ScriptIndexOutOfRangeException(op.Code, "upper boundary greater than array length");
             else
                 MainStack.Push(data.Skip(index).ToArray());
         }
@@ -306,34 +308,34 @@ namespace NDecred.TxScript
         private void OpSize(ParsedOpCode op)
         {
             var length = MainStack.Peek().Length;
-            MainStack.Push((ScriptInteger) length);
+            MainStack.Push(length);
         }
 
         private void OpInvert(ParsedOpCode op)
         {
             var value = MainStack.PopInt32();
-            MainStack.Push((ScriptInteger) ~value);
+            MainStack.Push(~value);
         }
 
         private void OpAnd(ParsedOpCode op)
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            MainStack.Push((ScriptInteger) (a & b));
+            MainStack.Push(a & b);
         }
 
         private void OpOr(ParsedOpCode op)
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            MainStack.Push((ScriptInteger) (a | b));
+            MainStack.Push(a | b);
         }
 
         private void OpXor(ParsedOpCode op)
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            MainStack.Push((ScriptInteger) (a ^ b));
+            MainStack.Push(a ^ b);
         }
 
         private void OpEqual(ParsedOpCode op)
@@ -355,9 +357,9 @@ namespace NDecred.TxScript
             var value = MainStack.PopInt32();
             
             if(rotate < 0)
-                throw new ScriptException($"{op.Code}: attempted to rotate by negative value");
+                throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by negative value");
             if(rotate > 31)
-                throw new ScriptException($"{op.Code}: attempted to rotate by value > 31");
+                throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by value > 31");
 
             var rotatedValue = (value >> rotate) | (value << (32 - rotate));
             MainStack.Push(rotatedValue);
@@ -369,9 +371,9 @@ namespace NDecred.TxScript
             var value = MainStack.PopInt32();
             
             if(rotate < 0)
-                throw new ScriptException($"{op.Code}: attempted to rotate by negative value");
+                throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by negative value");
             if(rotate > 31)
-                throw new ScriptException($"{op.Code}: attempted to rotate by value > 31");
+                throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by value > 31");
 
             var rotatedValue = (value << rotate) | (value >> (32 - rotate));
             MainStack.Push(rotatedValue);
@@ -441,7 +443,7 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             
             if(a == 0)
-                throw new ScriptException($"{op.Code} Division by zero", new DivideByZeroException());
+                throw new ArithemeticException(op.Code, "Division by zero");
             
             MainStack.Push(b/a);
         }
@@ -452,7 +454,7 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             
             if(a == 0)
-                throw new ScriptException($"{op.Code} Division by zero", new DivideByZeroException());
+                throw new ArithemeticException(op.Code, "Division by zero");
             
             MainStack.Push(b % a);
         }
@@ -463,9 +465,9 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             
             if(a < 0)
-                throw new ScriptException($"{op.Code} Negative shift");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Negative shift");
             if(a > 32)
-                throw new ScriptException($"{op.Code} Shift overflow");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Shift overflow");
 
             MainStack.Push(b << a);
         }
@@ -476,9 +478,9 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             
             if(a < 0)
-                throw new ScriptException($"{op.Code} Negative shift");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Negative shift");
             if(a > 32)
-                throw new ScriptException($"{op.Code} Shift overflow");
+                throw new ScriptIndexOutOfRangeException(op.Code, "Shift overflow");
 
             MainStack.Push(b >> a);
         }
@@ -596,6 +598,218 @@ namespace NDecred.TxScript
         {
             var value = MainStack.Pop();
             MainStack.Push(HashUtil.Blake256D(value));
+        }
+
+        private void OpInvalid(ParsedOpCode op)
+        {
+            throw new InvalidOpCodeException(op.Code);
+        }
+        
+        private void OpSha256(ParsedOpCode op)
+        {
+            if (!Options.EnableSha256)
+                throw new ReservedOpCodeException(OpCode.OP_UNKNOWN192);
+            
+            var data = MainStack.Pop();
+            var hash = HashUtil.Sha256(data);
+            MainStack.Push(hash);
+        }
+
+        private void OpCheckSig(ParsedOpCode op)
+        {
+            try
+            {
+                var rawPublicKey = MainStack.Pop();
+                var rawSignature = MainStack.Pop();
+
+                if (rawSignature.Length < 1)
+                {
+                    MainStack.Push(false);
+                    return;
+                }
+
+                var signature = rawSignature.Take(rawSignature.Length - 1).ToArray();
+                var signatureType = (SignatureHashType) rawSignature.Last();
+
+                AssertSignatureHashType(signatureType);
+                AssertSignatureEncoding(signature);
+                AssertPublicKeyEncoding(rawPublicKey);
+
+                var txCopy = (MsgTx) _transaction.Clone();
+                var subScript = Script.GetOpCodesWithoutData(rawSignature);            
+                var hash = CalculateSignatureHash(subScript, signatureType, txCopy, _transactionIndex);
+                
+                var ecSignature = new ECSignature(signature);
+                var securityService = new ECPublicSecurityService(rawPublicKey);
+                var isValidSignature = securityService.VerifySignature(hash, ecSignature);
+                
+                MainStack.Push(isValidSignature);
+            }
+            catch (ScriptException)
+            {
+                MainStack.Push(false);
+            }
+        }
+        
+        private void OpCheckSigVerify(ParsedOpCode op)
+        {
+            OpCheckSig(op);
+            OpVerify();
+        }
+
+        private byte[] CalculateSignatureHash(ParsedOpCode[] subScript, SignatureHashType hashType, MsgTx transaction, int transactionIndex)
+        {
+            const SignatureHashType mask = (SignatureHashType) 0x1f;
+            
+            if ((hashType & mask) == SignatureHashType.Single && transactionIndex >= transaction.TxOut.Length)
+                throw new InvalidSignatureException("SignatureHashType.Single index out of range");
+
+            // Clear out signature scripts for input transactions not at index
+            // transactionIndex
+            for (var i = 0; i < transaction.TxIn.Length; i++)
+                transaction.TxIn[i].SignatureScript = 
+                    i == transactionIndex ? 
+                        subScript.SelectMany(s => s.Serialize()).ToArray() 
+                        : new byte[0];
+
+            switch (hashType & mask)
+            {
+                case SignatureHashType.None:
+                    transaction.TxOut = new TxOut[0];
+                    for(var i = 0; i < transaction.TxIn.Length; i++)
+                        if (i != transactionIndex)
+                            transaction.TxIn[i].Sequence = 0;
+                    break;
+                case SignatureHashType.Single:
+                    transaction.TxOut = new TxOut[transactionIndex];
+
+                    for (var i = 0; i < transactionIndex; i++)
+                    {
+                        transaction.TxOut[i].Value = -1;
+                        transaction.TxOut[i].PkScript = null;
+                    }
+
+                    for (var i = 0; i < transaction.TxIn.Length; i++)
+                        if (i != transactionIndex)
+                            transaction.TxIn[i].Sequence = 0;
+                    break;
+                case SignatureHashType.Old:
+                    break;
+                case SignatureHashType.All:
+                    break;
+                case SignatureHashType.AllValue:
+                    break;
+                case SignatureHashType.AnyOneCanPay:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if ((hashType & SignatureHashType.AnyOneCanPay) != 0)
+            {
+                transaction.TxIn = transaction.TxIn
+                    .Skip(transactionIndex)
+                    .Take(1)
+                    .ToArray();
+            }
+            
+            var wbuf = new List<byte>(32 * 2 + 4);
+            wbuf.AddRange(BitConverter.GetBytes((uint) hashType));
+
+            var prefixHash = transaction.GetHash(TxSerializeType.NoWitness);
+            var witnessHash = transaction.GetHash(
+                (hashType & mask) != SignatureHashType.All ? 
+                TxSerializeType.WitnessSigning : 
+                TxSerializeType.WitnessValueSigning
+            );
+
+            wbuf.AddRange(prefixHash);
+            wbuf.AddRange(witnessHash);
+
+            return HashUtil.Blake256(wbuf.ToArray());
+        }
+
+        private void AssertPublicKeyEncoding(byte[] publicKey)
+        {
+            switch (publicKey.Length)
+            {
+                // Checks for a compressed key
+                case 33 when publicKey[0] == 0x02 || publicKey[0] == 0x03:
+                // Checks for an uncompressed key
+                case 65 when publicKey[0] == 0x04:
+                    return;
+            }
+
+            throw new InvalidSignatureException("Unsupported public key format.");
+        }
+        
+        private void AssertSignatureHashType(SignatureHashType type)
+        {
+            var t = type & ~SignatureHashType.AnyOneCanPay;
+            if(t < SignatureHashType.All || t > SignatureHashType.Single)
+                throw new InvalidSignatureException($"Invalid hash type {(byte)type:X}");
+        }
+        
+        private void AssertSignatureEncoding(byte[] signature)
+        {   
+            if(signature.Length < 8)
+                throw new InvalidSignatureException("Signature length too short");
+
+            var signatureType = signature[0];
+            var expectedSignatureLength = signature[1];
+            var signatureIntegerMarker = signature[2];
+            var rLen = signature[3];
+            var sLen = signature[rLen + 5];
+
+            if(signature.Length > 72)
+                throw new InvalidSignatureException("Signature length too long");
+            
+            if(signatureType != 0x30)
+                throw new InvalidSignatureException("Signature has wrong type");
+        
+            if(expectedSignatureLength != signature.Length - 2)
+                throw new InvalidSignatureException("Expected signature length does not match actual length");
+
+            if(rLen + 5 > signature.Length)
+                throw new InvalidSignatureException("Signature 'S' parameter out of bounds");
+
+            if(rLen + sLen + 6 > signature.Length)
+                throw new InvalidSignatureException("Invalid R length");
+            
+            if(signatureIntegerMarker != 0x02)
+                throw new InvalidSignatureException("Signature missing first integer marker");
+            
+            if(rLen == 0)
+                throw new InvalidSignatureException("Signature 'R' length is zero");
+            
+            if((signature[4] & 0x80) != 0)
+                throw new InvalidSignatureException("Signature 'R' value is negative");
+            
+            if(rLen > 1 && signature[4] == 0x00 && (signature[5]&0x80) == 0)
+                throw new InvalidSignatureException("Signature 'R' value is invalid");
+            
+            if(signature[rLen + 4] != 0x02)
+                throw new InvalidSignatureException("Missing second integer marker");
+            
+            if(sLen == 0)
+                throw new InvalidSignatureException("Signature 'S' value length is zero");
+            
+            if((signature[rLen + 6] & 0x80) != 0)
+                throw new InvalidSignatureException("Signature 'S' value is negative");
+            
+            if(sLen > 1 && signature[rLen+6] == 0x00 && (signature[rLen+7]&0x80) == 0)
+                throw new InvalidSignatureException("Signature 'S' value is invalid");
+
+            // TODO: Verify the behavior of this branch extensively.
+            // halforder is used to tame ECDSA malleability (see BIP0062).
+            // var halfOrder = new(big.Int).Rsh(chainec.Secp256k1.GetN(), 1)
+            //                 if sValue.Cmp(halfOrder) > 0 {
+
+            var sValue = new BigInteger(signature.Skip(rLen + 6).Take(rLen+6+sLen).ToArray());
+            var n = CustomNamedCurves.GetByOid(SecObjectIdentifiers.SecP256k1).N.ToByteArray();
+            var halfOrder = new BigInteger(n) >> 1;
+            if (sValue.CompareTo(halfOrder) > 0)
+                throw new InvalidSignatureException("Failed VerifyLowS validation.");
         }
     }
 }

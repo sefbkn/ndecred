@@ -2,23 +2,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NDecred.Common;
 
 namespace NDecred.TxScript
 {
     public class Script
     {
         public byte[] Bytes { get; }
-        public ScriptOptions Options { get; }
         public ParsedOpCode[] ParsedOpCodes { get; }
 
-        public Script(IEnumerable<OpCode> opCodes, ScriptOptions options = null) : 
-            this(opCodes.Select(op => (byte) op).ToArray(), options) { }
+        public Script(IEnumerable<OpCode> opCodes) : 
+            this(opCodes.Select(op => (byte) op).ToArray()) { }
         
-        public Script(byte[] bytes, ScriptOptions options = null)
+        public Script(byte[] bytes)
         {
             Bytes = bytes;
-            Options = options;
             ParsedOpCodes = ParseOpCodes(bytes).ToArray();
+        }
+        
+        private static IEnumerable<byte[]> SplitByOpCode(byte[] data, OpCode separator)
+        {
+            var lastSeparator = 0;
+            for (var i = 0; i < data.Length; i++)
+            {
+                if (data[i] != (byte) separator) continue;
+
+                var take = i - lastSeparator;
+                if (take == 0) continue;
+                
+                yield return data.Skip(lastSeparator).Take(take).ToArray();
+                lastSeparator = i + 1;
+            }
+        }
+
+        public ParsedOpCode[] GetOpCodesWithoutData(byte[] signature)
+        {
+            return ParsedOpCodes.Where(op => (op.IsCanonicalPush() && op.Data.Contains(signature)) == false).ToArray();
         }
 
         /// <summary>
@@ -44,7 +63,7 @@ namespace NDecred.TxScript
                 else if (opCode.IsOpN())
                     yield return ParseOpN(bytes, ref index);
                 else
-                    yield return new ParsedOpCode { Code = opCode, Data = null };
+                    yield return new ParsedOpCode(opCode);
             }
         }
 
@@ -83,9 +102,9 @@ namespace NDecred.TxScript
             }
             
             if(takeBytes < 0)
-                throw new ScriptException($"Expected positive integer to succeed opcode {opCode}");
+                throw new ScriptSyntaxErrorException(opCode, $"Expected positive integer to succeed opcode {opCode}");
             if(offset + takeBytes > bytes.Length)
-                throw new ScriptException($"Value succeeding {opCode} would read more bytes than available in script");
+                throw new ScriptSyntaxErrorException(opCode, $"Value succeeding {opCode} would read more bytes than available in script");
 
             // Read the next takeBytes bytes from the script and push it on the data stack.
             var dataBytes = bytes
@@ -97,7 +116,7 @@ namespace NDecred.TxScript
             index += offset - 1;
             
             // Size is the size of the opcode + ALL data mapped to this opcode.
-            return new ParsedOpCode {Code = opCode, Data = dataBytes};
+            return new ParsedOpCode(opCode, dataBytes);
         }
 
         /// <summary>
@@ -113,25 +132,19 @@ namespace NDecred.TxScript
             var data = bytes.Skip(index + 1).Take(length).ToArray();
             
             if (data.Length < length)
-                throw new ScriptException("Attempted to read more bytes than available in script");
+                throw new ScriptSyntaxErrorException(opCode, "Attempted to read more bytes than available in script");
             
             // Seek forward
             index += 1 + data.Length;
             
-            return new ParsedOpCode
-            {
-                Code = opCode,
-                Data = data
-            };
+            return new ParsedOpCode(opCode, data);
         }
 
         private ParsedOpCode ParseOpN(byte[] bytes, ref int index)
         {
-            return new ParsedOpCode
-            {
-                Code = (OpCode) bytes[index],
-                Data = new[]{(byte) (bytes[index] - 0x50)}
-            };
-        }
+            var opCode = (OpCode) bytes[index];
+            var value = (byte)(opCode - 0x50);
+            return new ParsedOpCode((OpCode) bytes[index], new[]{value});
+        }   
     }
 }

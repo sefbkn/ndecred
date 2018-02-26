@@ -214,8 +214,9 @@ namespace NDecred.TxScript
 		OP_SSTXCHANGE          = 0xbd, // 189 DECRED
 		OP_CHECKSIGALT         = 0xbe, // 190 DECRED
 		OP_CHECKSIGALTVERIFY   = 0xbf, // 191 DECRED
-		OP_SHA256              = 0xc0, // 192
-		OP_UNKNOWN193          = 0xc1, // 193
+	    OP_UNKNOWN192          = 0xc1, // 193
+	    OP_SHA256              = 0xc0, // 192
+	    OP_UNKNOWN193          = 0xc1, // 193
 		OP_UNKNOWN194          = 0xc2, // 194
 		OP_UNKNOWN195          = 0xc3, // 195
 		OP_UNKNOWN196          = 0xc4, // 196

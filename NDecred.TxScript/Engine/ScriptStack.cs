@@ -16,7 +16,7 @@ namespace NDecred.TxScript
         public void Push(byte[] data)
         {
             if(data.Length > MaxByteArrayLength)
-                throw new ScriptException($"Stack element must not be larger than {MaxByteArrayLength} bytes");
+                throw new StackElementTooBigException(data.Length, MaxByteArrayLength);
             
             this.Insert(0, data);
         }
