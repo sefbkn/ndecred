@@ -8,16 +8,24 @@ namespace NDecred.TxScript
     public partial class ScriptEngine
     {
         private readonly MsgTx _transaction;
-        private readonly int _transactionIndex;
+        private readonly int _index;
         private readonly Dictionary<OpCode, Action<ParsedOpCode>> _opCodeLookup;
 
         private bool _hasRun;
         private readonly object _lock = new object();
 
-        public ScriptEngine(MsgTx transaction, int transactionIndex, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transaction">The transaction that the script applies to.</param>
+        /// <param name="script"></param>
+        /// <param name="options"></param>
+        /// <param name="mainStack"></param>
+        /// <param name="branchStack"></param>
+        public ScriptEngine(MsgTx transaction, int index, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
         {
             _transaction = transaction;
-            _transactionIndex = transactionIndex;
+            _index = index;
             Script = script;
             Options = options ?? new ScriptOptions();
             MainStack = mainStack ?? new ScriptStack();
@@ -170,7 +178,7 @@ namespace NDecred.TxScript
                 (OpCode.OP_BLAKE256          , OpBlake256),
                 (OpCode.OP_HASH160           , OpHash160),
                 (OpCode.OP_HASH256           , OpHash256),
-                (OpCode.OP_CHECKSIG            , OpCheckSig),
+                (OpCode.OP_CHECKSIG            , (op) => OpCheckSig(op)),
                 (OpCode.OP_CHECKSIGVERIFY      , OpCheckSigVerify),
                 (OpCode.OP_CHECKMULTISIG       , e => throw new NotImplementedException()),
                 (OpCode.OP_CHECKMULTISIGVERIFY , e => throw new NotImplementedException()),

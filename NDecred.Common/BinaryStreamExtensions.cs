@@ -91,7 +91,6 @@ namespace NDecred.Common
             return new string(chars);
         }
 
-
         public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
         {
             var length = (ulong) (bytes?.Length ?? 0);

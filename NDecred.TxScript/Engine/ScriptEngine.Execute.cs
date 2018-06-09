@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography;
 using NDecred.Common;
 using NDecred.Cryptography;
 using NDecred.Wire;
@@ -635,9 +634,8 @@ namespace NDecred.TxScript
                 AssertSignatureEncoding(signature);
                 AssertPublicKeyEncoding(rawPublicKey);
 
-                var txCopy = (MsgTx) _transaction.Clone();
                 var subScript = Script.GetOpCodesWithoutData(rawSignature);            
-                var hash = CalculateSignatureHash(subScript, signatureType, txCopy, _transactionIndex);
+                var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) _transaction.Clone(), _index);
                 
                 var ecSignature = new ECSignature(signature);
                 var securityService = new ECPublicSecurityService(rawPublicKey);
@@ -657,18 +655,18 @@ namespace NDecred.TxScript
             OpVerify();
         }
 
-        private byte[] CalculateSignatureHash(ParsedOpCode[] subScript, SignatureHashType hashType, MsgTx transaction, int transactionIndex)
+        public static byte[] CalculateSignatureHash(ParsedOpCode[] subScript, SignatureHashType hashType, MsgTx transaction, int index)
         {
             const SignatureHashType mask = (SignatureHashType) 0x1f;
             
-            if ((hashType & mask) == SignatureHashType.Single && transactionIndex >= transaction.TxOut.Length)
+            if ((hashType & mask) == SignatureHashType.Single && index >= transaction.TxOut.Length)
                 throw new InvalidSignatureException("SignatureHashType.Single index out of range");
 
             // Clear out signature scripts for input transactions not at index
             // transactionIndex
             for (var i = 0; i < transaction.TxIn.Length; i++)
                 transaction.TxIn[i].SignatureScript = 
-                    i == transactionIndex ? 
+                    i == index ? 
                         subScript.SelectMany(s => s.Serialize()).ToArray() 
                         : new byte[0];
 
@@ -677,20 +675,20 @@ namespace NDecred.TxScript
                 case SignatureHashType.None:
                     transaction.TxOut = new TxOut[0];
                     for(var i = 0; i < transaction.TxIn.Length; i++)
-                        if (i != transactionIndex)
+                        if (i != index)
                             transaction.TxIn[i].Sequence = 0;
                     break;
                 case SignatureHashType.Single:
-                    transaction.TxOut = new TxOut[transactionIndex];
+                    transaction.TxOut = new TxOut[index];
 
-                    for (var i = 0; i < transactionIndex; i++)
+                    for (var i = 0; i < index; i++)
                     {
                         transaction.TxOut[i].Value = -1;
                         transaction.TxOut[i].PkScript = null;
                     }
 
                     for (var i = 0; i < transaction.TxIn.Length; i++)
-                        if (i != transactionIndex)
+                        if (i != index)
                             transaction.TxIn[i].Sequence = 0;
                     break;
                 case SignatureHashType.Old:
@@ -708,7 +706,7 @@ namespace NDecred.TxScript
             if ((hashType & SignatureHashType.AnyOneCanPay) != 0)
             {
                 transaction.TxIn = transaction.TxIn
-                    .Skip(transactionIndex)
+                    .Skip(index)
                     .Take(1)
                     .ToArray();
             }
@@ -729,7 +727,7 @@ namespace NDecred.TxScript
             return HashUtil.Blake256(wbuf.ToArray());
         }
 
-        private void AssertPublicKeyEncoding(byte[] publicKey)
+        private static void AssertPublicKeyEncoding(byte[] publicKey)
         {
             switch (publicKey.Length)
             {
@@ -813,3 +811,5 @@ namespace NDecred.TxScript
         }
     }
 }
+
+

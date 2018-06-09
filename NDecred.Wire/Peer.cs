@@ -91,7 +91,14 @@ namespace NDecred.Wire
 
         public void Dispose()
         {
-            _client?.Dispose();
+            try
+            {
+                _client?.Dispose();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
 
         protected virtual void OnMessageReceived(PeerMessageReceivedArgs e)

@@ -8,6 +8,32 @@ namespace NDecred.TxScript.Tests
 {
     public class ScriptEngineTests
     {
+        private MsgTx _transaction = new MsgTx
+        {
+            Expiry = 0,
+            LockTime = 0,
+            ProtocolVersion = 0,
+            SerializationType = TxSerializeType.Full,
+            TxIn = new []
+            {
+                new TxIn
+                {
+                    BlockHeight = 0,
+                    BlockIndex = 0,
+                    PreviousOutPoint = new OutPoint(new byte[0], 0, TxTree.TxTreeRegular)
+                }
+            },
+            TxOut = new []
+            { 
+                new TxOut
+                {
+                    PkScript = new byte[0],
+                    Value = 0,
+                    Version = 0
+                }  
+            }
+        };
+        
         public ScriptEngineTests()
         {
         }
@@ -29,7 +55,7 @@ namespace NDecred.TxScript.Tests
                 stack.Push(test.bytes);
                 
                 var script = new Script(new[]{OpCode.OP_IFDUP});
-                var engine = new ScriptEngine(script, stack);
+                var engine = new ScriptEngine(script, mainStack: stack);
                 engine.Run();
 
                 if (test.shouldDuplicate)
@@ -48,7 +74,7 @@ namespace NDecred.TxScript.Tests
             stack.Push(expected);
             
             var script = new Script(new[]{OpCode.OP_TOALTSTACK, OpCode.OP_FROMALTSTACK});
-            var engine = new ScriptEngine(script, stack);
+            var engine = new ScriptEngine(script, mainStack: stack);
             engine.Run();
             
             Assert.Equal(expected, (IEnumerable<byte>)engine.MainStack.Pop());
@@ -62,7 +88,7 @@ namespace NDecred.TxScript.Tests
             stack.Push(expected);
             
             var script = new Script(new[]{OpCode.OP_TOALTSTACK});
-            var engine = new ScriptEngine(script, stack);
+            var engine = new ScriptEngine(script, mainStack: stack);
             engine.Run();
             
             Assert.Equal(expected, (IEnumerable<byte>)engine.AltStack.Pop());
@@ -227,7 +253,7 @@ namespace NDecred.TxScript.Tests
             engine.Run();
             
             Assert.Equal(8, engine.MainStack.PopInt32());
-            Assert.Equal(6, engine.MainStack.PopInt32());            
+            Assert.Equal(6, engine.MainStack.PopInt32());
         }
 
         [Fact]
@@ -271,7 +297,10 @@ namespace NDecred.TxScript.Tests
                 mainStack.Push(new ScriptInteger(test.endIndexExclusive));
                 mainStack.Push(new ScriptInteger(test.startIndex));
                 
-                var engine = new ScriptEngine(script, mainStack);
+                var tx = new MsgTx();
+                var index = 0;
+                
+                var engine = new ScriptEngine(tx, index, script, mainStack: mainStack);
 
                 if (test.exception != null)
                 {
