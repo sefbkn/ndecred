@@ -20,10 +20,7 @@ namespace NDecred.TxScript.Tests
             var testCases = ParseTestCases(rawTests);
 
             for (var index = 0; index < testCases.Length; index++)
-            {
-                if (index < 114)
-                    continue;
-                
+            {                
                 var test = testCases[index];
                 if (test.IsComment)
                     continue;

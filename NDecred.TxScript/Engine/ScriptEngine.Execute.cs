@@ -180,9 +180,9 @@ namespace NDecred.TxScript
             var b = MainStack.Pop();
             var c = MainStack.Pop();
             
-            MainStack.Push(a);
-            MainStack.Push(c);
             MainStack.Push(b);
+            MainStack.Push(c);
+            MainStack.Push(a);
         }
         
         private void OpSwap()
