@@ -11,8 +11,13 @@ namespace NDecred.TxScript
 {   
     public class ScriptBuilder
     {
-        private readonly List<ParsedOpCode> _opCodes = new List<ParsedOpCode>();
+        private readonly List<byte> _scriptBytes = new List<byte>();
 
+        public void AddRawScriptBytes(byte[] data)
+        {
+            _scriptBytes.AddRange(data);
+        }
+        
         public void AddData(string data)
         {
             var bytes = Encoding.UTF8.GetBytes(data);
@@ -22,34 +27,25 @@ namespace NDecred.TxScript
         public void AddData(byte[] data)
         {
             var opCode = OpCodeUtil.CanonicalOpCodeForData(data);
-            var includeData = opCode.IsOpData() || opCode.IsPushDataOpCode();
-            var parsedOpCode = new ParsedOpCode(opCode, includeData ? data : null);
+            var parsedOpCode = new ParsedOpCode(opCode, data);
             AddOpCode(parsedOpCode);
         }
 
-        public void AddInt64(ulong number)
+        public void AddInt64(long number)
         {
-            if (number == 0)
-            {
-                
-            }
-            using (var ms = new MemoryStream())
-            using (var bw = new BinaryWriter(ms))
-            {
-                bw.WriteVariableLengthInteger(number);
-                var bytes = ms.ToArray();
-                AddData(bytes);
-            }
+            var integer = new ScriptInteger(number);
+            var bytes = integer.ToBytes();
+            AddData(bytes);
         }
 
         public void AddOpCode(ParsedOpCode opCode)
         {
-            _opCodes.Add(opCode);
+            _scriptBytes.AddRange(opCode.Serialize());
         }
 
         public Script ToScript()
         {
-            return new Script(_opCodes);
+            return new Script(_scriptBytes.ToArray());
         }
         
         public static Script P2PKHUnlockingScript(ECDSAType signatureType, byte[] signature, byte[] publicKey)

@@ -4,21 +4,25 @@ using System.Linq;
 
 namespace NDecred.TxScript
 {
-    public class ScriptStack : List<byte[]>
+    public class ScriptStack
     {
         public const int MaxByteArrayLength = 520;
+        private readonly List<byte[]> _stack = new List<byte[]>();
+
+        public int Size() => _stack.Count;
         
         public void Push(ScriptInteger scriptInteger)
         {
             Push(scriptInteger.ToBytes());
         }
 
-        public void Push(byte[] data)
+        public void Push(byte[] data, int depth = 0)
         {
             if(data.Length > MaxByteArrayLength)
                 throw new StackElementTooBigException(data.Length, MaxByteArrayLength);
-            
-            this.Insert(0, data);
+
+            var index = _stack.Count - depth;
+            _stack.Insert(index, data);
         }
 
         public void Push(bool condition)
@@ -27,16 +31,19 @@ namespace NDecred.TxScript
             Push(data);
         }
 
-        public byte[] Pop()
+        public byte[] Pop(int depth = 0)
         {
-            var value = this[0];
-            RemoveAt(0);
+            if(_stack.Count == 0)
+                throw new EmptyScriptStackException();
+            
+            var value = _stack[_stack.Count - (1 + depth)];
+            _stack.RemoveAt(_stack.Count - (1 + depth));
             return value;
         }
 
-        public byte[] Peek()
+        public byte[] Peek(int depth = 0)
         {
-            return this[0];
+            return _stack[_stack.Count - (1 + depth)];
         }
         
         public int PopInt32()

@@ -37,7 +37,7 @@ namespace NDecred.Wire
         public override void Encode(BinaryWriter writer)
         {
             writer.Write(ProtocolVersion);
-            writer.WriteVariableLengthInteger((ulong) BlockLocatorHashes.Length);
+            writer.WriteVariableLengthInteger(BlockLocatorHashes.Length);
             foreach(var locatorHash in BlockLocatorHashes)
                 writer.Write(locatorHash);
             writer.Write(HashStop);

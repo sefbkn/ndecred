@@ -13,7 +13,7 @@ namespace NDecred.Core.Tests
             // Seed the test with numbers
             // 2^n, 2^n + 1, 2^n -1 where n [0, 63]
             var tests = Enumerable.Range(0, 63)
-                .Select(i => (ulong) 1 << i)
+                .Select(i => (long) 1 << i)
                 .SelectMany(i => new[] {i - 1, i, i + 1})
                 .ToArray();
 

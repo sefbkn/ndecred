@@ -28,15 +28,17 @@ namespace NDecred.TxScript
             MainStack.Push(new byte[0]);
         }
 
-        private void OpPushBytes(ParsedOpCode op)
-        {
-            // Read the next length bytes from the execution stack
-            MainStack.Push(op.Data);
-        }
-
         private void OpPushData(ParsedOpCode op)
         {
-            MainStack.Push(op.Data);
+            if (op.Code.IsOpN())
+            {
+                var value = (op.Code - OpCode.OP_1) + 1;
+                MainStack.Push(value);
+            }
+            else
+            {
+                MainStack.Push(op.Data);                
+            }
         }
 
         // Push an integer onto the stack.
@@ -134,7 +136,7 @@ namespace NDecred.TxScript
 
         private void OpDepth()
         {
-            var bytes = new ScriptInteger(MainStack.Count).ToBytes();
+            var bytes = new ScriptInteger(MainStack.Size()).ToBytes();
             MainStack.Push(bytes);
         }
 
@@ -145,96 +147,114 @@ namespace NDecred.TxScript
 
         private void OpDup()
         {
-            MainStack.Push(MainStack[0]);
+            var value = MainStack.Peek();
+            MainStack.Push(value);
         }
 
         private void OpNip()
         {
-            MainStack.RemoveAt(1);
+            MainStack.Pop(1);
         }
         
         private void OpOver()
         {
-            MainStack.Push(MainStack[1]);
+            MainStack.Push(MainStack.Peek(1));
         }
 
         private void OpPick()
         {
             var n = MainStack.PopInt32();
-            MainStack.Push(MainStack[n]);
+            MainStack.Push(MainStack.Peek(n));
         }
 
         private void OpRoll()
         {
             var n = MainStack.PopInt32();
-            var val = MainStack[n];
-
-            MainStack.RemoveAt(n);
+            var val = MainStack.Pop(n);
             MainStack.Push(val);
         }
 
         private void OpRot()
         {
-            var rotated = new[]
-            {
-                MainStack[1],
-                MainStack[2],
-                MainStack[0]
-            };
+            var a = MainStack.Pop();
+            var b = MainStack.Pop();
+            var c = MainStack.Pop();
             
-            MainStack.RemoveRange(0, 3);
-            MainStack.InsertRange(0, rotated);
+            MainStack.Push(a);
+            MainStack.Push(c);
+            MainStack.Push(b);
         }
         
         private void OpSwap()
         {
-            var swapped = new[]
-            {
-                MainStack[1],
-                MainStack[0]
-            };
+            var a = MainStack.Pop();
+            var b = MainStack.Pop();
             
-            MainStack.RemoveRange(0, 2);
-            MainStack.InsertRange(0, swapped);
+            MainStack.Push(a);
+            MainStack.Push(b);
         }
 
         private void OpTuck()
         {
-            MainStack.Insert(2, MainStack[0]);
+            var a = MainStack.Peek();
+            MainStack.Push(a, 2);
         }
 
         private void Op2Drop()
         {
-            MainStack.RemoveRange(0, 2);
+            MainStack.Pop();
+            MainStack.Pop();
         }
 
         private void Op2Dup()
         {
-            MainStack.InsertRange(0, MainStack.Take(2));
+            var a = MainStack.Peek(0);
+            var b = MainStack.Peek(1);
+            
+            MainStack.Push(b);
+            MainStack.Push(a);
         }
 
         private void Op3Dup()
         {
-            MainStack.InsertRange(0, MainStack.Take(3));
+            var a = MainStack.Peek(0);
+            var b = MainStack.Peek(1);
+            var c = MainStack.Peek(2);
+            
+            MainStack.Push(c);
+            MainStack.Push(b);
+            MainStack.Push(a);
         }
 
         private void Op2Over()
         {
-            MainStack.InsertRange(0, MainStack.Skip(2).Take(2));
+            var a = MainStack.Peek(2);
+            var b = MainStack.Peek(3);
+            
+            MainStack.Push(b);
+            MainStack.Push(a);
         }
 
         private void Op2Rot()
         {
-            var values = MainStack.Skip(4).Take(2).ToArray();
-            MainStack.RemoveRange(4, 2);
-            MainStack.InsertRange(0, values);
+            var a = MainStack.Pop(4);
+            var b = MainStack.Pop(4);
+            
+            MainStack.Push(b);
+            MainStack.Push(a);
         }
 
         private void Op2Swap()
         {
-            var top = MainStack.Take(2).ToArray();      
-            MainStack.RemoveRange(0, 2);
-            MainStack.InsertRange(2, top);
+            var a = MainStack.Pop();
+            var b = MainStack.Pop();
+            var c = MainStack.Pop();
+            var d = MainStack.Pop();
+            
+            MainStack.Push(b);
+            MainStack.Push(a);
+            MainStack.Push(d);
+            MainStack.Push(c);
         }
 
         private void OpCat(ParsedOpCode op)

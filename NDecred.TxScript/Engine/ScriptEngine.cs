@@ -58,20 +58,30 @@ namespace NDecred.TxScript
                 AssertHasNotRun();
 
                 try
-                {                    
-                    foreach (var op in Script.ParsedOpCodes)
+                {
+                    var lockingScript = new Script(_transaction.TxIn[_index].SignatureScript);
+                    var ops = lockingScript.ParsedOpCodes.Concat(Script.ParsedOpCodes).ToArray();
+                    foreach (var op in ops)
                     {
                         var branchOp = BranchStack.Peek();
-    
-                        // Ensure that disabled and reserved opcodes are always executed.
+
+                        // Ensure that disabled opcodes are always executed.
                         var canExecute =
                             branchOp == BranchOption.True
                             || op.Code.IsConditional()
-                            || op.Code.IsDisabled()
-                            || op.Code.IsReserved();
-    
-                        if (!canExecute) continue;
-                        Execute(op);
+                            || op.Code.IsDisabled();
+                            // || op.Code.IsReserved();
+
+                        if (!canExecute) { continue; }
+
+                        try
+                        {
+                            Execute(op);
+                        }
+                        catch (EarlyReturnException e)
+                        {
+                            break;
+                        }
                     }
                     
                     if (BranchStack.Count > 1)
@@ -234,9 +244,9 @@ namespace NDecred.TxScript
                 _opCodeLookup.Add(opCode.op, opCode.action);
 
             for (var code = OpCode.OP_DATA_1; code <= OpCode.OP_DATA_75; code++)
-                _opCodeLookup.Add(code, OpPushBytes);
+                _opCodeLookup.Add(code, OpPushData);
             for (var code = OpCode.OP_1; code <= OpCode.OP_16; code++)
-                _opCodeLookup.Add(code, OpPushBytes);
+                _opCodeLookup.Add(code, OpPushData);
             for (var code = OpCode.OP_UNKNOWN193; code <= OpCode.OP_UNKNOWN248; code++)
                 _opCodeLookup.Add(code, OpNop);
             for(var code = OpCode.OP_INVALID249; code != OpCode.OP_0; code++)

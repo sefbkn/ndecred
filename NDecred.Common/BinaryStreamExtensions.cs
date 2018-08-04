@@ -12,9 +12,10 @@ namespace NDecred.Common
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="value"></param>
-        public static void WriteVariableLengthInteger(this BinaryWriter writer, ulong value)
+        public static void WriteVariableLengthInteger(this BinaryWriter writer, long value)
         {
             var format = (byte) (
+                value < 0 ? 0xff :
                 value < 0xfd ? (byte) value : // write byte, excluding flags
                 value <= ushort.MaxValue ? 0xfd : // write ushort
                 value <= uint.MaxValue ? 0xfe : // write uint
@@ -42,25 +43,25 @@ namespace NDecred.Common
         ///     If the parsed value is smaller than the minimum expected value for the amount of space
         ///     consumed, an exception is thrown.
         /// </exception>
-        public static ulong ReadVariableLengthInteger(this BinaryReader reader)
+        public static long ReadVariableLengthInteger(this BinaryReader reader)
         {
-            ulong value;
-            ulong min = 0;
+            long value;
+            long min = 0;
             var format = reader.ReadByte();
 
             switch (format)
             {
                 case 0xFF:
                     min = (long) uint.MaxValue + 1;
-                    value = reader.ReadUInt64();
+                    value = reader.ReadInt64();
                     break;
                 case 0xFE:
                     min = (uint) ushort.MaxValue + 1;
-                    value = reader.ReadUInt32();
+                    value = reader.ReadInt32();
                     break;
                 case 0xFD:
                     min = 0xFD;
-                    value = reader.ReadUInt16();
+                    value = reader.ReadInt16();
                     break;
                 default:
                     value = format;
@@ -75,14 +76,14 @@ namespace NDecred.Common
             return value;
         }
 
-        public static byte[] ReadVariableLengthBytes(this BinaryReader reader, ulong maxLength)
+        public static byte[] ReadVariableLengthBytes(this BinaryReader reader, long maxLength)
         {
             var length = reader.ReadVariableLengthInteger();
             if (length > maxLength) throw new Exception("payload length prefix is longer than max allowed length");
             return reader.ReadBytes((int) length);
         }
 
-        public static string ReadVariableLengthString(this BinaryReader reader, ulong maxLength)
+        public static string ReadVariableLengthString(this BinaryReader reader, long maxLength)
         {
             var chars = reader.ReadVariableLengthBytes(maxLength)
                 .Select(b => (char) b)
@@ -93,14 +94,14 @@ namespace NDecred.Common
 
         public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
         {
-            var length = (ulong) (bytes?.Length ?? 0);
+            var length = (bytes?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(bytes);
         }
 
         public static void WriteVariableLengthString(this BinaryWriter writer, string str)
         {
-            var length = (ulong) (str?.Length ?? 0);
+            var length = (str?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(str);
         }

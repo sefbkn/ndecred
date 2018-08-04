@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NDecred.Common;
 
 namespace NDecred.TxScript
@@ -42,6 +43,18 @@ namespace NDecred.TxScript
             return ParsedOpCodes.Where(op => (op.IsCanonicalPush() && op.Data.Contains(signature)) == false).ToArray();
         }
 
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            
+            foreach (var opCode in ParsedOpCodes)
+            {
+                sb.AppendLine($"{opCode.Code} {Hex.FromByteArray(opCode.Data)}");
+            }
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Parses raw opcode bytes into a collection of
         /// structured op codes.
@@ -50,22 +63,32 @@ namespace NDecred.TxScript
         /// <returns></returns>
         private static IEnumerable<ParsedOpCode> ParseOpCodes(byte[] bytes)
         {
-            for (int index = 0; index < bytes.Length; index++)
+            for (int index = 0; index < bytes.Length;)
             {
                 var opCode = (OpCode) bytes[index];
 
                 // Some opcodes have data encoded in the script that must be parsed.
                 // These opcodes should also skip over the bytes consumed by them so
                 // each iteration of this loop seeks to the next sequential opcode.
-                
+
                 if (opCode.IsOpData())
+                {
                     yield return ParseOpData(bytes, ref index);
-                else if(opCode.IsPushDataOpCode())
+                }
+                else if (opCode.IsPushDataOpCode())
+                {
                     yield return ParseOpPushData(bytes, ref index);
+                }
                 else if (opCode.IsOpN())
-                    yield return ParseOpN(bytes, ref index);
+                {
+                    yield return ParseOpN(bytes, index);
+                    index++;
+                }
                 else
+                {
                     yield return new ParsedOpCode(opCode);
+                    index++;
+                }
             }
         }
 
@@ -115,7 +138,7 @@ namespace NDecred.TxScript
                 .ToArray();
 
             offset += takeBytes;
-            index += offset - 1;
+            index = offset;
             
             // Size is the size of the opcode + ALL data mapped to this opcode.
             return new ParsedOpCode(opCode, dataBytes);
@@ -130,7 +153,7 @@ namespace NDecred.TxScript
         private static ParsedOpCode ParseOpData(byte[] bytes, ref int index)
         {
             var opCode = (OpCode) bytes[index];
-            var length = OpCode.OP_DATA_1 - opCode + 1;
+            var length = (opCode - OpCode.OP_DATA_1) + 1;
             var data = bytes.Skip(index + 1).Take(length).ToArray();
             
             if (data.Length < length)
@@ -142,11 +165,12 @@ namespace NDecred.TxScript
             return new ParsedOpCode(opCode, data);
         }
 
-        private static ParsedOpCode ParseOpN(byte[] bytes, ref int index)
+        private static ParsedOpCode ParseOpN(byte[] bytes, int index)
         {
             var opCode = (OpCode) bytes[index];
             var value = (byte)(opCode - 0x50);
             return new ParsedOpCode((OpCode) bytes[index], new[]{value});
-        }   
+        }
+        
     }
 }

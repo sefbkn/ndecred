@@ -342,6 +342,11 @@ namespace NDecred.TxScript
 			return opCode >= opCodeRange.min && opCode <= opCodeRange.max;
 		}
 
+		public static bool ShouldHaveData(this OpCode opCode)
+		{
+			return opCode.IsOpData() || opCode.IsPushDataOpCode() || opCode.IsOpN();
+		}
+
 		public static bool IsDisabled(this OpCode opCode)
 		{
 			return new[]

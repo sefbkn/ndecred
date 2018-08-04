@@ -12,12 +12,11 @@ namespace NDecred.TxScript
 
 	    public ParsedOpCode(OpCode code, byte[] data = null)
 	    {
+		    data = data ?? NullBytes;
+		    
 		    Code = code;
-		    Data = data ?? NullBytes;
-
-		    if (!IsCanonicalPush())
-			    throw new NonCanonicalOpCodeException(code, data);
-	    }
+		    Data = data;
+		}
 	    
 	    /// <summary>
 	    /// Determines if the operation is using the smallest amount of data possible.
@@ -54,10 +53,7 @@ namespace NDecred.TxScript
 	    /// </summary>
 	    /// <returns></returns>
 	    private int SerializedLength()
-	    {
-		    if (Code.IsOpN())
-			    return 1;
-		    
+	    {		    
 		    if (Code.IsOpData())
 			    return (int) Code + 1;
 		    
@@ -82,24 +78,25 @@ namespace NDecred.TxScript
 	    {
 		    var serializedLength = SerializedLength();
 		    var bytes = new List<byte>(serializedLength) { (byte) Code };
-
-		    if(serializedLength == 1 && Data.Length != 0)
-			    throw new ScriptSyntaxErrorException(Code, "Parsed OpCode has data attached although it should not");
-
-		    switch (Code)
-		    {
-				case OpCode.OP_PUSHDATA1:
-					bytes.Add((byte) Data.Length);
-					break;
-				case OpCode.OP_PUSHDATA2:
-					bytes.AddRange(BitConverter.GetBytes((short) Data.Length));
-					break;
-				case OpCode.OP_PUSHDATA4:
-					bytes.AddRange(BitConverter.GetBytes(Data.Length));
-					break;
-		    }
 		    
-		    bytes.AddRange(Data);
+		    // Only certain opcodes have a data element attached.
+		    if (serializedLength > 1)
+		    {
+			    switch (Code)
+			    {
+				    case OpCode.OP_PUSHDATA1:
+					    bytes.Add((byte) Data.Length);
+					    break;
+				    case OpCode.OP_PUSHDATA2:
+					    bytes.AddRange(BitConverter.GetBytes((short) Data.Length));
+					    break;
+				    case OpCode.OP_PUSHDATA4:
+					    bytes.AddRange(BitConverter.GetBytes(Data.Length));
+					    break;
+			    }
+		    
+			    bytes.AddRange(Data);
+		    }
 		    
 		    if(bytes.Count != serializedLength)
 			    throw new ScriptSyntaxErrorException(Code, $"Serialized OpCode has length {bytes.Count} bytes but should be {serializedLength} bytes");
