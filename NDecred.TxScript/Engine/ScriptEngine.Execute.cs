@@ -22,7 +22,7 @@ namespace NDecred.TxScript
         {
             throw new DisabledOpCodeException(op.Code);
         }
-        
+
         private void OpFalse()
         {
             MainStack.Push(new byte[0]);
@@ -37,7 +37,7 @@ namespace NDecred.TxScript
             }
             else
             {
-                MainStack.Push(op.Data);                
+                MainStack.Push(op.Data);
             }
         }
 
@@ -91,7 +91,7 @@ namespace NDecred.TxScript
                     break;
             }
         }
-        
+
         private void OpEndIf()
         {
             BranchStack.Discard();
@@ -102,7 +102,7 @@ namespace NDecred.TxScript
             if (!MainStack.PopBool())
                 throw new VerifyFailedException();
         }
-        
+
         private void OpReturn()
         {
             throw new EarlyReturnException();
@@ -117,7 +117,7 @@ namespace NDecred.TxScript
         {
             AltStack.Push(MainStack.Pop());
         }
-        
+
         private void OpFromAltStack()
         {
             MainStack.Push(AltStack.Pop());
@@ -126,11 +126,11 @@ namespace NDecred.TxScript
         private void OpIfDup()
         {
             var bytes = MainStack.Peek();
-            
+
             var scriptInt = new ScriptInteger(bytes, false, bytes.Length);
             if ((int) scriptInt == 0)
                 return;
-            
+
             MainStack.Push(bytes);
         }
 
@@ -155,7 +155,7 @@ namespace NDecred.TxScript
         {
             MainStack.Pop(1);
         }
-        
+
         private void OpOver()
         {
             MainStack.Push(MainStack.Peek(1));
@@ -179,17 +179,17 @@ namespace NDecred.TxScript
             var a = MainStack.Pop();
             var b = MainStack.Pop();
             var c = MainStack.Pop();
-            
+
             MainStack.Push(b);
-            MainStack.Push(c);
             MainStack.Push(a);
+            MainStack.Push(c);
         }
-        
+
         private void OpSwap()
         {
             var a = MainStack.Pop();
             var b = MainStack.Pop();
-            
+
             MainStack.Push(a);
             MainStack.Push(b);
         }
@@ -210,7 +210,7 @@ namespace NDecred.TxScript
         {
             var a = MainStack.Peek(0);
             var b = MainStack.Peek(1);
-            
+
             MainStack.Push(b);
             MainStack.Push(a);
         }
@@ -220,7 +220,7 @@ namespace NDecred.TxScript
             var a = MainStack.Peek(0);
             var b = MainStack.Peek(1);
             var c = MainStack.Peek(2);
-            
+
             MainStack.Push(c);
             MainStack.Push(b);
             MainStack.Push(a);
@@ -230,7 +230,7 @@ namespace NDecred.TxScript
         {
             var a = MainStack.Peek(2);
             var b = MainStack.Peek(3);
-            
+
             MainStack.Push(b);
             MainStack.Push(a);
         }
@@ -239,7 +239,7 @@ namespace NDecred.TxScript
         {
             var a = MainStack.Pop(4);
             var b = MainStack.Pop(4);
-            
+
             MainStack.Push(b);
             MainStack.Push(a);
         }
@@ -250,7 +250,7 @@ namespace NDecred.TxScript
             var b = MainStack.Pop();
             var c = MainStack.Pop();
             var d = MainStack.Pop();
-            
+
             MainStack.Push(b);
             MainStack.Push(a);
             MainStack.Push(d);
@@ -261,7 +261,7 @@ namespace NDecred.TxScript
         {
             var first = MainStack.Pop();
             var second = MainStack.Pop();
-                        
+
             var bytes = second.Concat(first).ToArray();
             MainStack.Push(bytes);
         }
@@ -271,7 +271,7 @@ namespace NDecred.TxScript
             var startIndex = MainStack.PopInt32();
             var endIndexExclusive = MainStack.PopInt32();
             var array = MainStack.Pop();
-            
+
             if(array.Length == 0)
                 MainStack.Push(new byte[0]);
             else if(startIndex < 0 || endIndexExclusive < 0)
@@ -293,7 +293,7 @@ namespace NDecred.TxScript
         {
             var high = MainStack.PopInt32();
             var data = MainStack.Pop();
-            
+
             if(data.Length == 0 || high == 0)
                 MainStack.Push(new byte[0]);
             else if(high < 0)
@@ -308,7 +308,7 @@ namespace NDecred.TxScript
                 MainStack.Push(bytes);
             }
         }
-        
+
         private void OpRight(ParsedOpCode op)
         {
             var index = MainStack.PopInt32();
@@ -360,7 +360,7 @@ namespace NDecred.TxScript
         private void OpEqual(ParsedOpCode op)
         {
             var a = MainStack.Pop();
-            var b = MainStack.Pop();            
+            var b = MainStack.Pop();
             MainStack.Push(a.SequenceEqual(b));
         }
 
@@ -374,7 +374,7 @@ namespace NDecred.TxScript
         {
             var rotate = MainStack.PopInt32();
             var value = MainStack.PopInt32();
-            
+
             if(rotate < 0)
                 throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by negative value");
             if(rotate > 31)
@@ -388,7 +388,7 @@ namespace NDecred.TxScript
         {
             var rotate = MainStack.PopInt32();
             var value = MainStack.PopInt32();
-            
+
             if(rotate < 0)
                 throw new ScriptIndexOutOfRangeException(op.Code, "attempted to rotate by negative value");
             if(rotate > 31)
@@ -460,10 +460,10 @@ namespace NDecred.TxScript
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            
+
             if(a == 0)
                 throw new ArithemeticException(op.Code, "Division by zero");
-            
+
             MainStack.Push(b/a);
         }
 
@@ -471,10 +471,10 @@ namespace NDecred.TxScript
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            
+
             if(a == 0)
                 throw new ArithemeticException(op.Code, "Division by zero");
-            
+
             MainStack.Push(b % a);
         }
 
@@ -482,7 +482,7 @@ namespace NDecred.TxScript
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            
+
             if(a < 0)
                 throw new ScriptIndexOutOfRangeException(op.Code, "Negative shift");
             if(a > 32)
@@ -495,7 +495,7 @@ namespace NDecred.TxScript
         {
             var a = MainStack.PopInt32();
             var b = MainStack.PopInt32();
-            
+
             if(a < 0)
                 throw new ScriptIndexOutOfRangeException(op.Code, "Negative shift");
             if(a > 32)
@@ -537,7 +537,7 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             MainStack.Push(a != b ? 1 : 0);
         }
-        
+
         private void OpLessThan(ParsedOpCode obj)
         {
             var a = MainStack.PopInt32();
@@ -551,7 +551,7 @@ namespace NDecred.TxScript
             var b = MainStack.PopInt32();
             MainStack.Push(b > a ? 1 : 0);
         }
-        
+
         private void OpLessThanOrEqual(ParsedOpCode obj)
         {
             var a = MainStack.PopInt32();
@@ -585,7 +585,7 @@ namespace NDecred.TxScript
             var max = MainStack.PopInt32();
             var min = MainStack.PopInt32();
             var test = MainStack.PopInt32();
-            
+
             MainStack.Push(min <= test && test < max ? 1 : 0);
         }
 
@@ -623,12 +623,12 @@ namespace NDecred.TxScript
         {
             throw new InvalidOpCodeException(op.Code);
         }
-        
+
         private void OpSha256(ParsedOpCode op)
         {
             if (!Options.EnableSha256)
                 throw new ReservedOpCodeException(OpCode.OP_UNKNOWN192);
-            
+
             var data = MainStack.Pop();
             var hash = HashUtil.Sha256(data);
             MainStack.Push(hash);
@@ -654,13 +654,13 @@ namespace NDecred.TxScript
                 AssertSignatureEncoding(signature);
                 AssertPublicKeyEncoding(rawPublicKey);
 
-                var subScript = Script.GetOpCodesWithoutData(rawSignature);            
+                var subScript = Script.GetOpCodesWithoutData(rawSignature);
                 var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) transaction.Clone(), _index);
-                
+
                 var ecSignature = new ECSignature(signature);
                 var securityService = new ECPublicSecurityService(rawPublicKey);
                 var isValidSignature = securityService.VerifySignature(hash, ecSignature);
-                
+
                 MainStack.Push(isValidSignature);
             }
             catch (ScriptException)
@@ -668,7 +668,7 @@ namespace NDecred.TxScript
                 MainStack.Push(false);
             }
         }
-        
+
         private void OpCheckSigVerify(ParsedOpCode op, MsgTx transaction)
         {
             OpCheckSig(op, transaction);
@@ -678,16 +678,16 @@ namespace NDecred.TxScript
         public static byte[] CalculateSignatureHash(ParsedOpCode[] subScript, SignatureHashType hashType, MsgTx transaction, int index)
         {
             const SignatureHashType mask = (SignatureHashType) 0x1f;
-            
+
             if ((hashType & mask) == SignatureHashType.Single && index >= transaction.TxOut.Length)
                 throw new InvalidSignatureException("SignatureHashType.Single index out of range");
 
             // Clear out signature scripts for input transactions not at index
             // transactionIndex
             for (var i = 0; i < transaction.TxIn.Length; i++)
-                transaction.TxIn[i].SignatureScript = 
-                    i == index ? 
-                        subScript.SelectMany(s => s.Serialize()).ToArray() 
+                transaction.TxIn[i].SignatureScript =
+                    i == index ?
+                        subScript.SelectMany(s => s.Serialize()).ToArray()
                         : new byte[0];
 
             switch (hashType & mask)
@@ -730,14 +730,14 @@ namespace NDecred.TxScript
                     .Take(1)
                     .ToArray();
             }
-            
+
             var wbuf = new List<byte>(32 * 2 + 4);
             wbuf.AddRange(BitConverter.GetBytes((uint) hashType));
 
             var prefixHash = transaction.GetHash(TxSerializeType.NoWitness);
             var witnessHash = transaction.GetHash(
-                (hashType & mask) != SignatureHashType.All ? 
-                TxSerializeType.WitnessSigning : 
+                (hashType & mask) != SignatureHashType.All ?
+                TxSerializeType.WitnessSigning :
                 TxSerializeType.WitnessValueSigning
             );
 
@@ -760,16 +760,16 @@ namespace NDecred.TxScript
 
             throw new InvalidSignatureException("Unsupported public key format.");
         }
-        
+
         private void AssertSignatureHashType(SignatureHashType type)
         {
             var t = type & ~SignatureHashType.AnyOneCanPay;
             if(t < SignatureHashType.All || t > SignatureHashType.Single)
                 throw new InvalidSignatureException($"Invalid hash type {(byte)type:X}");
         }
-        
+
         private void AssertSignatureEncoding(byte[] signature)
-        {   
+        {
             if(signature.Length < 8)
                 throw new InvalidSignatureException("Signature length too short");
 
@@ -781,10 +781,10 @@ namespace NDecred.TxScript
 
             if(signature.Length > 72)
                 throw new InvalidSignatureException("Signature length too long");
-            
+
             if(signatureType != 0x30)
                 throw new InvalidSignatureException("Signature has wrong type");
-        
+
             if(expectedSignatureLength != signature.Length - 2)
                 throw new InvalidSignatureException("Expected signature length does not match actual length");
 
@@ -793,28 +793,28 @@ namespace NDecred.TxScript
 
             if(rLen + sLen + 6 > signature.Length)
                 throw new InvalidSignatureException("Invalid R length");
-            
+
             if(signatureIntegerMarker != 0x02)
                 throw new InvalidSignatureException("Signature missing first integer marker");
-            
+
             if(rLen == 0)
                 throw new InvalidSignatureException("Signature 'R' length is zero");
-            
+
             if((signature[4] & 0x80) != 0)
                 throw new InvalidSignatureException("Signature 'R' value is negative");
-            
+
             if(rLen > 1 && signature[4] == 0x00 && (signature[5]&0x80) == 0)
                 throw new InvalidSignatureException("Signature 'R' value is invalid");
-            
+
             if(signature[rLen + 4] != 0x02)
                 throw new InvalidSignatureException("Missing second integer marker");
-            
+
             if(sLen == 0)
                 throw new InvalidSignatureException("Signature 'S' value length is zero");
-            
+
             if((signature[rLen + 6] & 0x80) != 0)
                 throw new InvalidSignatureException("Signature 'S' value is negative");
-            
+
             if(sLen > 1 && signature[rLen+6] == 0x00 && (signature[rLen+7]&0x80) == 0)
                 throw new InvalidSignatureException("Signature 'S' value is invalid");
 
