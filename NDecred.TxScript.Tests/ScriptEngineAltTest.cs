@@ -32,24 +32,8 @@ namespace NDecred.TxScript.Tests
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(
-                        $"Failed test.  {test.RawTest}",
-                        e
-                    );
+                    throw new Exception($"Failed test.  {test.RawTest}", e);
                 }
-                
-                /*
-                 *
-                 * 			var vm *Engine
-			if useSigCache {
-				vm, err = NewEngine(scriptPubKey, tx, 0, flags,
-					0, sigCache)
-			} else {
-				vm, err = NewEngine(scriptPubKey, tx, 0, flags,
-					0, nil)
-			}
-
-                 */
             }
         }
 
@@ -159,8 +143,8 @@ namespace NDecred.TxScript.Tests
                     {
                         new TxIn
                         {
-                            PreviousOutPoint = new OutPoint(),
-                            SignatureScript = SignatureScript.Bytes
+                            PreviousOutPoint = new OutPoint(new byte[32], 0, TxTree.TxTreeRegular),
+                            SignatureScript = new[]{ (byte)OpCode.OP_0, (byte)OpCode.OP_0 }
                         }
                     },
                     TxOut = new[]
