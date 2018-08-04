@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NDecred.Wire;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace NDecred.TxScript
 {
@@ -48,49 +49,77 @@ namespace NDecred.TxScript
         /// </summary>
         public void Run()
         {
+            // Raise error without lock, if possible.
+            AssertHasNotRun();
+            
             lock (_lock)
             {
-                if (_hasRun)
-                {
-                    throw new InvalidOperationException(
-                        $"Run method can only be called once on a {nameof(ScriptEngine)} instance.");
+                // Check lock for blocked threads.
+                AssertHasNotRun();
+
+                try
+                {                    
+                    foreach (var op in Script.ParsedOpCodes)
+                    {
+                        var branchOp = BranchStack.Peek();
+    
+                        // Ensure that disabled and reserved opcodes are always executed.
+                        var canExecute =
+                            branchOp == BranchOption.True
+                            || op.Code.IsConditional()
+                            || op.Code.IsDisabled()
+                            || op.Code.IsReserved();
+    
+                        if (!canExecute) continue;
+                        Execute(op);
+                    }
+                    
+                    if (BranchStack.Count > 1)
+                    {
+                        throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
+                    }
                 }
-
-                _hasRun = true;
-            }
-
-            for (var instructionPointer = 0; instructionPointer < Script.ParsedOpCodes.Length; instructionPointer++)
-            {
-                var op = Script.ParsedOpCodes[instructionPointer];
-                var branchOp = BranchStack.Peek();
-
-                // Ensure that disabled and reserved opcodes are executed.
-                var canExecute =
-                    branchOp == BranchOption.True
-                    || op.Code.IsConditional()
-                    || op.Code.IsDisabled()
-                    || op.Code.IsReserved();
-
-                if (!canExecute) continue;
-                Execute(op);
-            }
-
-            if (BranchStack.Count > 1)
-            {
-                throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
+                
+                finally
+                {
+                    _hasRun = true;
+                }
             }
         }
-        
+
+        private void AssertHasNotRun()
+        {
+            if (_hasRun)
+            {
+                throw new InvalidOperationException(
+                    $"Run method can only be called once on a {nameof(ScriptEngine)} instance.");
+            }
+        }
+
         private void Execute(ParsedOpCode op)
         {
             if (!_opCodeLookup.TryGetValue(op.Code, out var action))
-                throw new ScriptSyntaxErrorException(($"Attempted to execute unknown op code 0x{(byte)op.Code:X}"));
-            
-            if(op.Code.IsReserved())
+                throw new ScriptSyntaxErrorException(($"Attempted to execute unknown op code 0x{(byte) op.Code:X}"));
+
+            if (op.Code.IsReserved())
                 throw new ReservedOpCodeException(op.Code);
 
-            
-            action(op);
+            try
+            {
+                action(op);
+            }
+            catch (ScriptException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(
+                    $"Unexpected error while running script. " +
+                    $"OpCode: {op.Code} " +
+                    $"Data: '{Hex.ToHexString(op.Data)}'",
+                    ex);
+            }
         }
 
         private void InitializeOpCodeDictionary()
@@ -178,8 +207,8 @@ namespace NDecred.TxScript
                 (OpCode.OP_BLAKE256          , OpBlake256),
                 (OpCode.OP_HASH160           , OpHash160),
                 (OpCode.OP_HASH256           , OpHash256),
-                (OpCode.OP_CHECKSIG            , (op) => OpCheckSig(op)),
-                (OpCode.OP_CHECKSIGVERIFY      , OpCheckSigVerify),
+                (OpCode.OP_CHECKSIG            , op => OpCheckSig(op, _transaction)),
+                (OpCode.OP_CHECKSIGVERIFY      , op => OpCheckSigVerify(op, _transaction)),
                 (OpCode.OP_CHECKMULTISIG       , e => throw new NotImplementedException()),
                 (OpCode.OP_CHECKMULTISIGVERIFY , e => throw new NotImplementedException()),
                 (OpCode.OP_CHECKLOCKTIMEVERIFY , e => throw new NotImplementedException()), // OpCode.OP_NOP2
@@ -210,7 +239,7 @@ namespace NDecred.TxScript
                 _opCodeLookup.Add(code, OpPushBytes);
             for (var code = OpCode.OP_UNKNOWN193; code <= OpCode.OP_UNKNOWN248; code++)
                 _opCodeLookup.Add(code, OpNop);
-            for(var code = OpCode.OP_INVALID249; code <= OpCode.OP_INVALIDOPCODE; code++)
+            for(var code = OpCode.OP_INVALID249; code != OpCode.OP_0; code++)
                 _opCodeLookup.Add(code, OpInvalid);
         }
     }

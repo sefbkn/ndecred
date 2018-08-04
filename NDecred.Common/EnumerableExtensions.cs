@@ -4,14 +4,24 @@ namespace NDecred.Common
 {
     public static class EnumerableExtensions
     {
-        public static bool Contains<T>(this IEnumerable<T> array, T[] find)
+        /// <summary>
+        /// Determines if a set of values exists in an enumerable
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="set"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static bool Contains<T>(this IEnumerable<T> array, T[] set)
         {
             var matchCount = 0;
             foreach (var element in array)
             {
-                if (find[matchCount].Equals(element))
-                    matchCount++;                
-                if (matchCount == find.Length) return true;
+                if (set[matchCount].Equals(element))
+                    matchCount++;
+                else
+                    matchCount = 0;
+                
+                if (matchCount == set.Length) return true;
             }
 
             return false;

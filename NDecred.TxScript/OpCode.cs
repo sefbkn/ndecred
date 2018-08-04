@@ -283,6 +283,16 @@ namespace NDecred.TxScript
 	
 	public static class OpCodeUtil
 	{
+		public static string ToString(OpCode opCode)
+		{
+			return Enum.GetName(typeof(OpCode), opCode);
+		}
+
+		public static OpCode FromString(string value)
+		{
+			return (OpCode) Enum.Parse(typeof(OpCode), value);
+		}
+		
 		public static bool IsConditional(this OpCode opCode)
 		{
 			return new[]{
@@ -298,6 +308,22 @@ namespace NDecred.TxScript
 			var opCodeRange = (min: OpCode.OP_DATA_1, max: OpCode.OP_DATA_75);
 			return opCode >= opCodeRange.min && opCode <= opCodeRange.max;
 		}
+		
+		// Return the optimal instruction based on the length of the data 
+		public static OpCode CanonicalOpCodeForData(byte[] data)
+		{
+			if (data.Length == 0 || data[0] == 0)
+				return OpCode.OP_0;
+			if (data.Length > 0xffff)
+				return OpCode.OP_PUSHDATA4;
+			if (data.Length > 0xff)
+				return OpCode.OP_PUSHDATA2;
+			if (data.Length > (byte) OpCode.OP_DATA_75)
+				return OpCode.OP_PUSHDATA1;
+			if (data.Length == 1 && data[0] <= 16)
+				return OpCode.OP_1 + (byte)(data[0] - 1);
+			return OpCode.OP_0 + (byte) data.Length;
+		}
 
 		public static bool IsPushDataOpCode(this OpCode opCode)
 		{
@@ -311,6 +337,7 @@ namespace NDecred.TxScript
 
 		public static bool IsOpN(this OpCode opCode)
 		{
+			if (opCode == OpCode.OP_0) return true;
 			var opCodeRange = (min: OpCode.OP_1, max: OpCode.OP_16);
 			return opCode >= opCodeRange.min && opCode <= opCodeRange.max;
 		}

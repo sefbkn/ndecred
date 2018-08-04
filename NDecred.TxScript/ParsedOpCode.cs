@@ -14,6 +14,9 @@ namespace NDecred.TxScript
 	    {
 		    Code = code;
 		    Data = data ?? NullBytes;
+
+		    if (!IsCanonicalPush())
+			    throw new NonCanonicalOpCodeException(code, data);
 	    }
 	    
 	    /// <summary>
@@ -52,11 +55,14 @@ namespace NDecred.TxScript
 	    /// <returns></returns>
 	    private int SerializedLength()
 	    {
-		    if (Code <= OpCode.OP_PUSHDATA4)
-		    {
-			    if (Code >= OpCode.OP_0 && Code <= OpCode.OP_DATA_75)
-				    return (int) Code + 1;
+		    if (Code.IsOpN())
+			    return 1;
 		    
+		    if (Code.IsOpData())
+			    return (int) Code + 1;
+		    
+		    if (Code.IsPushDataOpCode())
+		    {
 			    switch (Code)
 			    {
 				    case OpCode.OP_PUSHDATA1:
@@ -67,10 +73,9 @@ namespace NDecred.TxScript
 					    return 1 + 4 + Data.Length;
 			    }
 		    }
-
+		    
 		    return 1;
 	    }
-	    
 	    
 	    // Serialize the opcode to a raw representation.
 	    public byte[] Serialize()

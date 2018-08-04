@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection.Emit;
+using System.Text;
 using NDecred.Common;
 using NDecred.Cryptography;
 using NDecred.Wire;
@@ -10,7 +11,48 @@ namespace NDecred.TxScript
 {   
     public class ScriptBuilder
     {
-        public Script P2PKHUnlockingScript(ECDSAType signatureType, byte[] signature, byte[] publicKey)
+        private readonly List<ParsedOpCode> _opCodes = new List<ParsedOpCode>();
+
+        public void AddData(string data)
+        {
+            var bytes = Encoding.UTF8.GetBytes(data);
+            AddData(bytes);
+        }
+        
+        public void AddData(byte[] data)
+        {
+            var opCode = OpCodeUtil.CanonicalOpCodeForData(data);
+            var includeData = opCode.IsOpData() || opCode.IsPushDataOpCode();
+            var parsedOpCode = new ParsedOpCode(opCode, includeData ? data : null);
+            AddOpCode(parsedOpCode);
+        }
+
+        public void AddInt64(ulong number)
+        {
+            if (number == 0)
+            {
+                
+            }
+            using (var ms = new MemoryStream())
+            using (var bw = new BinaryWriter(ms))
+            {
+                bw.WriteVariableLengthInteger(number);
+                var bytes = ms.ToArray();
+                AddData(bytes);
+            }
+        }
+
+        public void AddOpCode(ParsedOpCode opCode)
+        {
+            _opCodes.Add(opCode);
+        }
+
+        public Script ToScript()
+        {
+            return new Script(_opCodes);
+        }
+        
+        public static Script P2PKHUnlockingScript(ECDSAType signatureType, byte[] signature, byte[] publicKey)
         {
             if(signatureType != ECDSAType.ECTypeSecp256k1)
                 throw new NotImplementedException();
@@ -24,7 +66,7 @@ namespace NDecred.TxScript
             }
         }
 
-        public Script P2PKHLockingScript(ECDSAType signatureType, byte[] publicKeyHash)
+        public static Script P2PKHLockingScript(ECDSAType signatureType, byte[] publicKeyHash)
         {
             switch (signatureType)
             {

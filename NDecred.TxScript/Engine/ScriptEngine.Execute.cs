@@ -614,7 +614,7 @@ namespace NDecred.TxScript
             MainStack.Push(hash);
         }
 
-        private void OpCheckSig(ParsedOpCode op)
+        public void OpCheckSig(ParsedOpCode op, MsgTx transaction)
         {
             try
             {
@@ -635,7 +635,7 @@ namespace NDecred.TxScript
                 AssertPublicKeyEncoding(rawPublicKey);
 
                 var subScript = Script.GetOpCodesWithoutData(rawSignature);            
-                var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) _transaction.Clone(), _index);
+                var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) transaction.Clone(), _index);
                 
                 var ecSignature = new ECSignature(signature);
                 var securityService = new ECPublicSecurityService(rawPublicKey);
@@ -649,9 +649,9 @@ namespace NDecred.TxScript
             }
         }
         
-        private void OpCheckSigVerify(ParsedOpCode op)
+        private void OpCheckSigVerify(ParsedOpCode op, MsgTx transaction)
         {
-            OpCheckSig(op);
+            OpCheckSig(op, transaction);
             OpVerify();
         }
 

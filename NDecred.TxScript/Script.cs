@@ -8,17 +8,19 @@ namespace NDecred.TxScript
 {
     public class Script
     {
-        public byte[] Bytes { get; }
+        public byte[] Bytes => ParsedOpCodes.SelectMany(p => p.Serialize()).ToArray();
         public ParsedOpCode[] ParsedOpCodes { get; }
+
+        public Script(IEnumerable<ParsedOpCode> parsedOpCodes)
+        {
+            ParsedOpCodes = parsedOpCodes.ToArray();
+        }
 
         public Script(IEnumerable<OpCode> opCodes) : 
             this(opCodes.Select(op => (byte) op).ToArray()) { }
         
-        public Script(byte[] bytes)
-        {
-            Bytes = bytes;
-            ParsedOpCodes = ParseOpCodes(bytes).ToArray();
-        }
+        public Script(byte[] bytes) : 
+            this(ParseOpCodes(bytes)) { }
         
         private static IEnumerable<byte[]> SplitByOpCode(byte[] data, OpCode separator)
         {
@@ -46,7 +48,7 @@ namespace NDecred.TxScript
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private IEnumerable<ParsedOpCode> ParseOpCodes(byte[] bytes)
+        private static IEnumerable<ParsedOpCode> ParseOpCodes(byte[] bytes)
         {
             for (int index = 0; index < bytes.Length; index++)
             {
@@ -76,7 +78,7 @@ namespace NDecred.TxScript
         /// </summary>
         /// <exception cref="InvalidOperationException">thrown if an opcode is passed that is not an OP_PUSHDATA</exception>
         /// <exception cref="ScriptException">thrown if the payload length succeeding the opcode is invalid for this script.</exception>
-        private ParsedOpCode ParseOpPushData(byte[] bytes, ref int index)
+        private static ParsedOpCode ParseOpPushData(byte[] bytes, ref int index)
         {
             // The number of bytes to read.
             int takeBytes;
@@ -125,7 +127,7 @@ namespace NDecred.TxScript
         /// <param name="bytes"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        private ParsedOpCode ParseOpData(byte[] bytes, ref int index)
+        private static ParsedOpCode ParseOpData(byte[] bytes, ref int index)
         {
             var opCode = (OpCode) bytes[index];
             var length = OpCode.OP_DATA_1 - opCode + 1;
@@ -140,7 +142,7 @@ namespace NDecred.TxScript
             return new ParsedOpCode(opCode, data);
         }
 
-        private ParsedOpCode ParseOpN(byte[] bytes, ref int index)
+        private static ParsedOpCode ParseOpN(byte[] bytes, ref int index)
         {
             var opCode = (OpCode) bytes[index];
             var value = (byte)(opCode - 0x50);
