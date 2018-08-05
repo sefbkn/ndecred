@@ -10,10 +10,7 @@ namespace NDecred.TxScript
     {
         private readonly MsgTx _transaction;
         private readonly int _txIndex;
-
-        private Script _script;
-        private int _scriptIndex;
-
+        private readonly Script _script;
         private readonly Dictionary<OpCode, Action<ParsedOpCode>> _opCodeLookup;
 
         private bool _hasRun;
@@ -32,7 +29,6 @@ namespace NDecred.TxScript
             _transaction = transaction;
             _txIndex = txIndex;
             _script = script;
-            _scriptIndex = 0;
             _opCodeLookup = new Dictionary<OpCode, Action<ParsedOpCode>>();
 
             Options = options ?? new ScriptOptions();
@@ -55,65 +51,83 @@ namespace NDecred.TxScript
         /// </summary>
         public void Run()
         {
-            // Raise error without lock, if possible.
-            AssertHasNotRun();
-
             lock (_lock)
             {
-                // Check lock for blocked threads.
                 AssertHasNotRun();
 
                 try
                 {
-                    var lockingScript = new Script(_transaction.TxIn[_txIndex].SignatureScript);
-                    var script = new Script(lockingScript.ParsedOpCodes, _script.ParsedOpCodes);
-
-                    foreach (var subScriptOps in script.Subscripts)
-                    {
-                        this.NumOperations = 0;
-                        foreach (var op in subScriptOps)
-                        {
-                            // Ensure that disabled opcodes are always executed.
-                            var branchOp = BranchStack.Peek();
-                            var canExecute = branchOp == BranchOption.True
-                                             || op.Code.IsConditional()
-                                             || op.Code.IsDisabled();
-                            if (!canExecute) { continue; }
-
-                            try
-                            {
-                                if (op.Code > OpCode.OP_16)
-                                {
-                                    NumOperations++;
-                                    if (NumOperations > Options.MaxOperationsPerScript)
-                                    {
-                                        throw new TooManyOperationsException();
-                                    }
-                                }
-                                else if(op.Data.Length > Options.MaxScriptElementSize)
-                                {
-                                    throw new StackElementTooBigException(op.Data.Length, Options.MaxScriptElementSize);
-                                }
-
-                                Execute(op);
-                            }
-                            catch (EarlyReturnException e)
-                            {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (BranchStack.Count > 1)
-                    {
-                        throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
-                    }
+                    var sigScript = new Script(_transaction.TxIn[_txIndex].SignatureScript);
+                    var fullScript = new Script(sigScript.ParsedOpCodes, _script.ParsedOpCodes);
+                    RunInternal(fullScript);
                 }
-
                 finally
                 {
                     _hasRun = true;
                 }
+            }
+        }
+
+        private void RunInternal(Script script)
+        {
+            foreach (var subScriptOps in script.Subscripts)
+            {
+                // Reset operation counter between subscripts
+                this.NumOperations = 0;
+
+                foreach (var op in subScriptOps)
+                {
+                    if (!CanExecuteNextOpCode(op)) { continue; }
+
+                    try
+                    {
+                        IncrementOpCounter(op.Code);
+                        VerifyOpDataSize(op.Data.Length);
+                        Execute(op);
+                    }
+                    catch (EarlyReturnException e)
+                    {
+                        break;
+                    }
+                }
+
+                EnsureBranchStackClean();
+            }
+        }
+
+        private void EnsureBranchStackClean()
+        {
+            if (BranchStack.Count > 1)
+            {
+                throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
+            }
+        }
+
+        private bool CanExecuteNextOpCode(ParsedOpCode op)
+        {
+            // Ensure that disabled opcodes are always executed.
+            var branchOp = BranchStack.Peek();
+            return branchOp == BranchOption.True
+                || op.Code.IsConditional()
+                || op.Code.IsDisabled();
+        }
+
+        private void IncrementOpCounter(OpCode opCode)
+        {
+            if (opCode <= OpCode.OP_16) return;
+
+            NumOperations++;
+            if (NumOperations > Options.MaxOperationsPerScript)
+            {
+                throw new TooManyOperationsException();
+            }
+        }
+
+        private void VerifyOpDataSize(int dataLength)
+        {
+            if(dataLength > Options.MaxScriptElementSize)
+            {
+                throw new StackElementTooBigException(dataLength, Options.MaxScriptElementSize);
             }
         }
 
@@ -146,7 +160,7 @@ namespace NDecred.TxScript
             catch (Exception ex)
             {
                 throw new Exception(
-                    $"Unexpected error while running script. " +
+                    "Unexpected error while running script. " +
                     $"OpCode: {op.Code} " +
                     $"Data: '{Hex.ToHexString(op.Data)}'",
                     ex);
