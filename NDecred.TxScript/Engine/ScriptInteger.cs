@@ -11,12 +11,12 @@ namespace NDecred.TxScript
     public struct ScriptInteger
     {
         public const int MathOpcodeMaxLength = 4;
-        
+
         private const int MaxInt32 = int.MaxValue;
-        private const int MinInt32 = int.MinValue + 1;        
+        private const int MinInt32 = int.MinValue + 1;
         private static readonly byte[] Zero = new byte[0];
-        
-        private long Value { get; }
+
+        public long Value { get; }
 
         public ScriptInteger(long value)
         {
@@ -25,31 +25,31 @@ namespace NDecred.TxScript
 
         public ScriptInteger(byte[] bytes, bool assertMinimalEncoding, int maxLength)
         {
-            if (bytes.Length > maxLength)
-                throw new ScriptIntegerEncodingException(bytes, 
-                    $"Script integer byte length expected to be <= {maxLength}.  Actual value {bytes.Length}");
-            
             if(bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
+
+            if (bytes.Length > maxLength)
+                throw new ScriptIntegerEncodingException(bytes,
+                    $"Script integer byte length expected to be <= {maxLength}.  Actual value {bytes.Length}");
 
             if(assertMinimalEncoding)
                 AssertMinimalEncoding(bytes);
 
             Value = bytes.Length == 0 ? 0 : FromBytes(bytes);
         }
-        
-        private static void AssertMinimalEncoding(byte[] bytes)
+
+        public static void AssertMinimalEncoding(byte[] bytes)
         {
             var length = bytes.Length;
-            
+
             if (bytes.Length == 0)
                 return;
-            
+
             // Interpret single-byte values as literals,
             // with the exception of 0x80.  That value should
             // be extended with a sign byte.
 
-            if ((bytes[length - 1] & 0x7f) != 0) 
+            if ((bytes[length - 1] & 0x7f) != 0)
                 return;
             if (length == 1)
                 throw new ScriptIntegerEncodingException(bytes, "Script integer bytes not minimally encoded.  Should be extended with a sign byte.");
@@ -58,18 +58,18 @@ namespace NDecred.TxScript
         }
 
         private static long FromBytes(byte[] bytes)
-        {            
+        {
             long result = 0;
-            
+
             // If the leading bit is set, the number is negative.
             var isNegative = (bytes.Last() & 0x80) != 0;
-            
+
             // Extract bytes and store in long value (little -> big endian)
             for (byte i = 0; i < bytes.Length; i++)
                 result |= (long) bytes[i] << i * 8;
-            
+
             if (!isNegative) return result;
-            
+
             // If the original value was negative,
             // unset the negative-flag bit from the encoded value.
             // Negating the long value will set the high bit for us.
@@ -101,28 +101,13 @@ namespace NDecred.TxScript
             {
                 byteList.Add((byte)(isNegative ? 0x80 : 0x00));
             }
-            
+
             else if(isNegative)
             {
                 byteList[byteList.Count - 1] |= 0x80;
             }
 
             return byteList.ToArray();
-        }
-
-        public static implicit operator ScriptInteger(int d)
-        {
-            return new ScriptInteger(d);
-        }
-
-        public static explicit operator int(ScriptInteger d)
-        {
-            if (d.Value > MaxInt32)
-                return MaxInt32;
-            if (d.Value < MinInt32)
-                return MinInt32;
-
-            return (int) d.Value;
         }
     }
 }

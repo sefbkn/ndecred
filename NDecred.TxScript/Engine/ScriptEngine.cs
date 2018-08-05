@@ -9,40 +9,46 @@ namespace NDecred.TxScript
     public partial class ScriptEngine
     {
         private readonly MsgTx _transaction;
-        private readonly int _index;
+        private readonly int _txIndex;
+
+        private Script _script;
+        private int _scriptIndex;
+
         private readonly Dictionary<OpCode, Action<ParsedOpCode>> _opCodeLookup;
 
         private bool _hasRun;
         private readonly object _lock = new object();
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="transaction">The transaction that the script applies to.</param>
         /// <param name="script"></param>
         /// <param name="options"></param>
         /// <param name="mainStack"></param>
         /// <param name="branchStack"></param>
-        public ScriptEngine(MsgTx transaction, int index, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
+        public ScriptEngine(MsgTx transaction, int txIndex, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
         {
             _transaction = transaction;
-            _index = index;
-            Script = script;
-            Options = options ?? new ScriptOptions();
-            MainStack = mainStack ?? new ScriptStack();
-            BranchStack = branchStack ?? new BranchStack();
-            AltStack = new ScriptStack();
+            _txIndex = txIndex;
+            _script = script;
+            _scriptIndex = 0;
             _opCodeLookup = new Dictionary<OpCode, Action<ParsedOpCode>>();
+
+            Options = options ?? new ScriptOptions();
+            MainStack = mainStack ?? new ScriptStack(Options.AssertScriptIntegerMinimalEncoding);
+            BranchStack = branchStack ?? new BranchStack();
+            AltStack = new ScriptStack(Options.AssertScriptIntegerMinimalEncoding);
 
             InitializeOpCodeDictionary();
         }
-        
+
         public ScriptStack AltStack { get; }
         public ScriptStack MainStack { get; }
-        
-        private Script Script { get; }
+
         private ScriptOptions Options { get; }
         private BranchStack BranchStack { get; }
+        private int NumOperations { get; set; }
 
         /// <summary>
         /// Executes a sequence of instructions, taking branching logic into account.
@@ -51,7 +57,7 @@ namespace NDecred.TxScript
         {
             // Raise error without lock, if possible.
             AssertHasNotRun();
-            
+
             lock (_lock)
             {
                 // Check lock for blocked threads.
@@ -59,37 +65,51 @@ namespace NDecred.TxScript
 
                 try
                 {
-                    var lockingScript = new Script(_transaction.TxIn[_index].SignatureScript);
-                    var ops = lockingScript.ParsedOpCodes.Concat(Script.ParsedOpCodes).ToArray();
-                    foreach (var op in ops)
+                    var lockingScript = new Script(_transaction.TxIn[_txIndex].SignatureScript);
+                    var script = new Script(lockingScript.ParsedOpCodes, _script.ParsedOpCodes);
+
+                    foreach (var subScriptOps in script.Subscripts)
                     {
-                        var branchOp = BranchStack.Peek();
-
-                        // Ensure that disabled opcodes are always executed.
-                        var canExecute =
-                            branchOp == BranchOption.True
-                            || op.Code.IsConditional()
-                            || op.Code.IsDisabled();
-                            // || op.Code.IsReserved();
-
-                        if (!canExecute) { continue; }
-
-                        try
+                        this.NumOperations = 0;
+                        foreach (var op in subScriptOps)
                         {
-                            Execute(op);
-                        }
-                        catch (EarlyReturnException e)
-                        {
-                            break;
+                            // Ensure that disabled opcodes are always executed.
+                            var branchOp = BranchStack.Peek();
+                            var canExecute = branchOp == BranchOption.True
+                                             || op.Code.IsConditional()
+                                             || op.Code.IsDisabled();
+                            if (!canExecute) { continue; }
+
+                            try
+                            {
+                                if (op.Code > OpCode.OP_16)
+                                {
+                                    NumOperations++;
+                                    if (NumOperations > Options.MaxOperationsPerScript)
+                                    {
+                                        throw new TooManyOperationsException();
+                                    }
+                                }
+                                else if(op.Data.Length > Options.MaxScriptElementSize)
+                                {
+                                    throw new StackElementTooBigException(op.Data.Length, Options.MaxScriptElementSize);
+                                }
+
+                                Execute(op);
+                            }
+                            catch (EarlyReturnException e)
+                            {
+                                break;
+                            }
                         }
                     }
-                    
+
                     if (BranchStack.Count > 1)
                     {
                         throw new ScriptSyntaxErrorException("Script missing OP_ENDIF");
                     }
                 }
-                
+
                 finally
                 {
                     _hasRun = true;
@@ -122,6 +142,7 @@ namespace NDecred.TxScript
             {
                 throw;
             }
+
             catch (Exception ex)
             {
                 throw new Exception(
@@ -134,6 +155,9 @@ namespace NDecred.TxScript
 
         private void InitializeOpCodeDictionary()
         {
+            var tx = _transaction;
+            var txIn = tx.TxIn[_txIndex];
+
             var collection = new (OpCode op, Action<ParsedOpCode> action)[]
             {
                 (OpCode.OP_0, op => OpFalse()),
@@ -217,12 +241,12 @@ namespace NDecred.TxScript
                 (OpCode.OP_BLAKE256          , OpBlake256),
                 (OpCode.OP_HASH160           , OpHash160),
                 (OpCode.OP_HASH256           , OpHash256),
-                (OpCode.OP_CHECKSIG            , op => OpCheckSig(op, _transaction)),
-                (OpCode.OP_CHECKSIGVERIFY      , op => OpCheckSigVerify(op, _transaction)),
-                (OpCode.OP_CHECKMULTISIG       , e => throw new NotImplementedException()),
-                (OpCode.OP_CHECKMULTISIGVERIFY , e => throw new NotImplementedException()),
-                (OpCode.OP_CHECKLOCKTIMEVERIFY , e => throw new NotImplementedException()), // OpCode.OP_NOP2
-                (OpCode.OP_CHECKSEQUENCEVERIFY , e => throw new NotImplementedException()), // OpCode.OP_NOP3
+                (OpCode.OP_CHECKSIG            , op => OpCheckSig(op, tx)),
+                (OpCode.OP_CHECKSIGVERIFY      , op => OpCheckSigVerify(op, tx)),
+                (OpCode.OP_CHECKMULTISIG       , op => OpCheckMultisig(op)),
+                (OpCode.OP_CHECKMULTISIGVERIFY , op => CheckMultisigVerify(op)),
+                (OpCode.OP_CHECKLOCKTIMEVERIFY , op => CheckLockTimeVerify(op, tx.LockTime, txIn.Sequence)), // OpCode.OP_NOP2
+                (OpCode.OP_CHECKSEQUENCEVERIFY , op => CheckSequenceVerify(op, tx.Version, txIn.Sequence)), // OpCode.OP_NOP3
                 (OpCode.OP_NOP1                , OpNop),
                 (OpCode.OP_NOP4                , OpNop),
                 (OpCode.OP_NOP5                , OpNop),
@@ -239,7 +263,7 @@ namespace NDecred.TxScript
                 (OpCode.OP_CHECKSIGALTVERIFY   , e => throw new NotImplementedException()),
                 (OpCode.OP_SHA256              , OpSha256),
             };
-            
+
             foreach(var opCode in collection)
                 _opCodeLookup.Add(opCode.op, opCode.action);
 

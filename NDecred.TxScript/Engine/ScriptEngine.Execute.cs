@@ -12,9 +12,12 @@ namespace NDecred.TxScript
 {
     public partial class ScriptEngine
     {
+        public static long LockTimeThreshold = (long) 5e8;
+        public static uint MaxTxInSequenceNumber = 0xffffffff;
+
         private void OpNop(ParsedOpCode op)
         {
-            if (op.Code.IsUpgradableNop())
+            if(Options.DiscourageUpgradableNops)
                 throw new ReservedOpCodeException(op.Code);
         }
 
@@ -45,8 +48,7 @@ namespace NDecred.TxScript
         // Value is converted to ScriptInteger so consensus rules are followed.
         private void OpPush(int value)
         {
-            var scriptInteger = new ScriptInteger(value);
-            MainStack.Push(scriptInteger.ToBytes());
+            MainStack.Push(value);
         }
 
         private void OpIf()
@@ -125,19 +127,16 @@ namespace NDecred.TxScript
 
         private void OpIfDup()
         {
+            var shouldDuplicate = MainStack.PeekBool();
+            if (!shouldDuplicate) return;
+
             var bytes = MainStack.Peek();
-
-            var scriptInt = new ScriptInteger(bytes, false, bytes.Length);
-            if ((int) scriptInt == 0)
-                return;
-
             MainStack.Push(bytes);
         }
 
         private void OpDepth()
         {
-            var bytes = new ScriptInteger(MainStack.Size()).ToBytes();
-            MainStack.Push(bytes);
+            MainStack.Push(MainStack.Size());
         }
 
         private void OpDrop()
@@ -627,7 +626,10 @@ namespace NDecred.TxScript
         private void OpSha256(ParsedOpCode op)
         {
             if (!Options.EnableSha256)
-                throw new ReservedOpCodeException(OpCode.OP_UNKNOWN192);
+            {
+                OpNop(op);
+                return;
+            }
 
             var data = MainStack.Pop();
             var hash = HashUtil.Sha256(data);
@@ -654,8 +656,8 @@ namespace NDecred.TxScript
                 AssertSignatureEncoding(signature);
                 AssertPublicKeyEncoding(rawPublicKey);
 
-                var subScript = Script.GetOpCodesWithoutData(rawSignature);
-                var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) transaction.Clone(), _index);
+                var subScript = _script.GetOpCodesWithoutData(rawSignature);
+                var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) transaction.Clone(), _txIndex);
 
                 var ecSignature = new ECSignature(signature);
                 var securityService = new ECPublicSecurityService(rawPublicKey);
@@ -828,6 +830,159 @@ namespace NDecred.TxScript
             var halfOrder = new BigInteger(n) >> 1;
             if (sValue.CompareTo(halfOrder) > 0)
                 throw new InvalidSignatureException("Failed VerifyLowS validation.");
+        }
+
+        private void VerifyLockTime(uint txLockTime, long threshold, long scriptLockTime)
+        {
+            var compatibleLockTimes =
+                (txLockTime < threshold && scriptLockTime < threshold) ||
+                (txLockTime >= threshold && scriptLockTime >= threshold);
+
+            if(!compatibleLockTimes)
+                throw new CheckLockTimeException(
+                    txLockTime, scriptLockTime, CheckLockTimeFailureReason.MismatchedLockTimeTypes);
+
+            if(scriptLockTime > txLockTime)
+                throw new CheckLockTimeException(
+                    txLockTime, scriptLockTime, CheckLockTimeFailureReason.ScriptLockTimeGreaterThanTxLockTime);
+        }
+
+        public void CheckLockTimeVerify(ParsedOpCode op, uint txLockTime, uint txInSequence)
+        {
+            if (!Options.EnableCheckLockTimeVerify)
+            {
+                OpNop(op);
+                return;
+            }
+
+            var rawTime = MainStack.Peek();
+            var lockTime = new ScriptInteger(rawTime, Options.AssertScriptIntegerMinimalEncoding, 5);
+            var stackLockTime = lockTime.Value;
+
+            if (stackLockTime < 0)
+                throw new CheckLockTimeException(
+                    txLockTime, stackLockTime, CheckLockTimeFailureReason.NegativeLockTime);
+
+            VerifyLockTime(txLockTime, LockTimeThreshold, stackLockTime);
+
+            if(txInSequence == MaxTxInSequenceNumber)
+                throw new CheckLockTimeException(
+                    txLockTime, stackLockTime, CheckLockTimeFailureReason.TxInputFinalized);
+        }
+
+        public void CheckSequenceVerify(ParsedOpCode op, ushort txVersion, uint txInSequence)
+        {
+            if (!Options.EnableCheckSequenceVerify)
+            {
+                OpNop(op);
+                return;
+            }
+
+            var rawTime = MainStack.Peek();
+            var sequence = new ScriptInteger(rawTime, Options.AssertScriptIntegerMinimalEncoding, 5);
+            var stackSequence = sequence.Value;
+            if (stackSequence < 0)
+                throw new CheckSequenceException(
+                    txInSequence, stackSequence, CheckSequenceError.NegativeSequence);
+
+            if ((sequence.Value & MsgTx.SequenceLockTimeDisabled) != 0)
+                return;
+
+            if(txVersion < 2)
+                throw new CheckSequenceException(
+                    txInSequence, stackSequence, CheckSequenceError.InvalidTxVersion);
+
+            if((txInSequence & MsgTx.SequenceLockTimeDisabled) != 0)
+                throw new CheckSequenceException(
+                    txInSequence, stackSequence, CheckSequenceError.SequenceLockTimeDisabled);
+
+            var lockTimeMask = (uint) MsgTx.SequenceLockTimeIsSeconds | MsgTx.SequenceLockTimeMask;
+            VerifyLockTime(
+                lockTimeMask & txInSequence,
+                MsgTx.SequenceLockTimeIsSeconds,
+                sequence.Value & lockTimeMask);
+        }
+
+        public void OpCheckMultisig(ParsedOpCode op)
+        {
+            var numKeys = MainStack.PopInt32();
+
+            // Each check counts as an operation to the VM.
+            NumOperations += numKeys;
+            if(numKeys > Options.MaxPublicKeysPerMultisig)
+                throw new CheckMultisigException("Too many public keys");
+            if(NumOperations > Options.MaxOperationsPerScript)
+                throw new TooManyOperationsException();
+
+            var publicKeys = MainStack.PopN(numKeys);
+
+            var numSignatures = MainStack.PopInt32();
+            if(numSignatures < 0)
+                throw new CheckMultisigException("Number of signatures is less than 0");
+            if(numSignatures > numKeys)
+                throw new CheckMultisigException("Number of signatures exceeds number of public keys");
+
+            var signatures = MainStack.PopN(numSignatures);
+
+            var success = true;
+            var keyIndex = -1;
+            var signatureIndex = 0;
+            numKeys++;
+
+            while (numSignatures > 0)
+            {
+                keyIndex++;
+                numKeys--;
+                if (numSignatures > numKeys)
+                {
+                    success = false;
+                    break;
+                }
+
+                try
+                {
+                    var rawSignature = signatures[signatureIndex];
+                    var rawPublicKey = publicKeys[keyIndex];
+
+                    if (rawSignature.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var signature = rawSignature.Take(rawSignature.Length - 1).ToArray();
+                    var signatureType = (SignatureHashType) rawSignature.Last();
+
+                    AssertSignatureHashType(signatureType);
+                    AssertSignatureEncoding(signature);
+                    AssertPublicKeyEncoding(rawPublicKey);
+
+                    var subScript = _script.GetOpCodesWithoutData(rawSignature);
+                    var hash = CalculateSignatureHash(subScript, signatureType, (MsgTx) _transaction.Clone(), _txIndex);
+
+                    var ecSignature = new ECSignature(signature);
+                    var securityService = new ECPublicSecurityService(rawPublicKey);
+                    var isValidSignature = securityService.VerifySignature(hash, ecSignature);
+
+                    if (isValidSignature)
+                    {
+                        signatureIndex++;
+                        numSignatures--;
+                    }
+                }
+                catch (ScriptException)
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+            MainStack.Push(success);
+        }
+
+        public void CheckMultisigVerify(ParsedOpCode op)
+        {
+            OpCheckMultisig(op);
+            OpVerify();
         }
     }
 }

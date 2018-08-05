@@ -6,21 +6,23 @@ namespace NDecred.TxScript
 {
     public class ScriptStack
     {
-        public const int MaxByteArrayLength = 520;
+        public int Size() => _stack.Count;
+        private readonly bool _minimalEncoding;
         private readonly List<byte[]> _stack = new List<byte[]>();
 
-        public int Size() => _stack.Count;
-        
-        public void Push(ScriptInteger scriptInteger)
+        public ScriptStack(bool minimalEncoding)
         {
-            Push(scriptInteger.ToBytes());
+            _minimalEncoding = minimalEncoding;
+        }
+
+        public void Push(int value)
+        {
+            var scriptInt = new ScriptInteger(value);
+            Push(scriptInt.ToBytes());
         }
 
         public void Push(byte[] data, int depth = 0)
         {
-            if(data.Length > MaxByteArrayLength)
-                throw new StackElementTooBigException(data.Length, MaxByteArrayLength);
-
             var index = _stack.Count - depth;
             _stack.Insert(index, data);
         }
@@ -35,26 +37,40 @@ namespace NDecred.TxScript
         {
             if(_stack.Count == 0)
                 throw new EmptyScriptStackException();
-            
+
             var value = _stack[_stack.Count - (1 + depth)];
             _stack.RemoveAt(_stack.Count - (1 + depth));
             return value;
+        }
+
+        public byte[][] PopN(int count)
+        {
+            return Enumerable.Range(0, count).Select(i => Pop()).ToArray();
         }
 
         public byte[] Peek(int depth = 0)
         {
             return _stack[_stack.Count - (1 + depth)];
         }
-        
+
         public int PopInt32()
         {
-            return (int) new ScriptInteger(Pop(), true, ScriptInteger.MathOpcodeMaxLength);
+            var scriptInt = new ScriptInteger(Pop(), _minimalEncoding, ScriptInteger.MathOpcodeMaxLength);
+            return (int) scriptInt.Value;
+        }
+
+        public bool PeekBool()
+        {
+            return BytesToBool(Peek());
         }
 
         public bool PopBool()
         {
-            var val = Pop();
+            return BytesToBool(Pop());
+        }
 
+        private bool BytesToBool(byte[] val)
+        {
             // Empty value, then false
             if (val.Length == 0)
                 return false;

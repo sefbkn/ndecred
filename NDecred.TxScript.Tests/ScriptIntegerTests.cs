@@ -8,7 +8,7 @@ using Xunit.Sdk;
 namespace NDecred.TxScript.Tests
 {
     public partial class ScriptIntegerTests
-    {   
+    {
         [Fact]
         public void ToBytes_ReturnsExpectedValue()
         {
@@ -18,19 +18,19 @@ namespace NDecred.TxScript.Tests
                 try
                 {
                     var subject = new ScriptInteger(test.Serialized, test.MinimalEncoding, test.NumLen);
-                    
+
                     // Test deserialization
-                    Assert.Equal(test.Number, (int) subject);
-                    
+                    Assert.Equal(test.Number, (int) subject.Value);
+
                     // Assert serialization works with minimal encoding.
                     if(test.MinimalEncoding)
                         Assert.Equal(test.Serialized, subject.ToBytes());
-                    
+
                     if(test.ExpectedException != null)
                         throw new Exception($"Expected exception of type {test.ExpectedException} not thrown");
                 }
                 catch (ScriptException e)
-                {                    
+                {
                     Assert.Equal(test.ExpectedException, e.GetType());
                 }
             }

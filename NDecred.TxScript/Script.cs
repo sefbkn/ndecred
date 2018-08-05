@@ -11,18 +11,20 @@ namespace NDecred.TxScript
     {
         public byte[] Bytes => ParsedOpCodes.SelectMany(p => p.Serialize()).ToArray();
         public ParsedOpCode[] ParsedOpCodes { get; }
+        public ParsedOpCode[][] Subscripts { get; }
 
-        public Script(IEnumerable<ParsedOpCode> parsedOpCodes)
+        public Script(params ParsedOpCode[][] subScripts)
         {
-            ParsedOpCodes = parsedOpCodes.ToArray();
+            Subscripts = subScripts;
+            ParsedOpCodes = subScripts.SelectMany(s => s).ToArray();
         }
 
-        public Script(IEnumerable<OpCode> opCodes) : 
+        public Script(IEnumerable<OpCode> opCodes) :
             this(opCodes.Select(op => (byte) op).ToArray()) { }
-        
-        public Script(byte[] bytes) : 
+
+        public Script(byte[] bytes) :
             this(ParseOpCodes(bytes)) { }
-        
+
         private static IEnumerable<byte[]> SplitByOpCode(byte[] data, OpCode separator)
         {
             var lastSeparator = 0;
@@ -32,27 +34,17 @@ namespace NDecred.TxScript
 
                 var take = i - lastSeparator;
                 if (take == 0) continue;
-                
+
                 yield return data.Skip(lastSeparator).Take(take).ToArray();
                 lastSeparator = i + 1;
             }
         }
 
-        public ParsedOpCode[] GetOpCodesWithoutData(byte[] signature)
+        public ParsedOpCode[] GetOpCodesWithoutData(params byte[][] values)
         {
-            return ParsedOpCodes.Where(op => (op.IsCanonicalPush() && op.Data.Contains(signature)) == false).ToArray();
-        }
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            
-            foreach (var opCode in ParsedOpCodes)
-            {
-                sb.AppendLine($"{opCode.Code} {Hex.FromByteArray(opCode.Data)}");
-            }
-
-            return sb.ToString();
+            return ParsedOpCodes
+                .Where(op => op.IsCanonicalPush())
+                .Where(op => !values.Any(val => op.Data.Contains(val))).ToArray();
         }
 
         /// <summary>
@@ -61,9 +53,11 @@ namespace NDecred.TxScript
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private static IEnumerable<ParsedOpCode> ParseOpCodes(byte[] bytes)
+        private static ParsedOpCode[] ParseOpCodes(byte[] bytes)
         {
-            for (int index = 0; index < bytes.Length;)
+            var ops = new List<ParsedOpCode>();
+
+            for (var index = 0; index < bytes.Length;)
             {
                 var opCode = (OpCode) bytes[index];
 
@@ -73,31 +67,33 @@ namespace NDecred.TxScript
 
                 if (opCode.IsOpData())
                 {
-                    yield return ParseOpData(bytes, ref index);
+                    ops.Add(ParseOpData(bytes, ref index));
                 }
                 else if (opCode.IsPushDataOpCode())
                 {
-                    yield return ParseOpPushData(bytes, ref index);
+                    ops.Add(ParseOpPushData(bytes, ref index));
                 }
                 else if (opCode.IsOpN())
                 {
-                    yield return ParseOpN(bytes, index);
+                    ops.Add(ParseOpN(bytes, index));
                     index++;
                 }
                 else
                 {
-                    yield return new ParsedOpCode(opCode);
+                    ops.Add(new ParsedOpCode(opCode));
                     index++;
                 }
             }
+
+            return ops.ToArray();
         }
 
         /// <summary>
         /// Parses the opcodes OP_PUSHDATA{1,2,4}
-        /// 
+        ///
         /// These opcodes are followed by a 'length' parameter and a payload of size 'length'.
         /// The payload is extracted from the script and placed in the ParsedOpCode.Data property,
-        /// and the position in the script "index" is incremented to skip over the processed bytes. 
+        /// and the position in the script "index" is incremented to skip over the processed bytes.
         /// </summary>
         /// <exception cref="InvalidOperationException">thrown if an opcode is passed that is not an OP_PUSHDATA</exception>
         /// <exception cref="ScriptException">thrown if the payload length succeeding the opcode is invalid for this script.</exception>
@@ -107,7 +103,7 @@ namespace NDecred.TxScript
             int takeBytes;
             var offset = index + 1;
             var opCode = (OpCode) bytes[index];
-            
+
             switch (opCode)
             {
                 case OpCode.OP_PUSHDATA1:
@@ -125,7 +121,7 @@ namespace NDecred.TxScript
                 default:
                     throw new InvalidOperationException("OpPushData is only valid for OP_PUSHDATA(1|2|4)");
             }
-            
+
             if(takeBytes < 0)
                 throw new ScriptSyntaxErrorException(opCode, $"Expected positive integer to succeed opcode {opCode}");
             if(offset + takeBytes > bytes.Length)
@@ -139,7 +135,7 @@ namespace NDecred.TxScript
 
             offset += takeBytes;
             index = offset;
-            
+
             // Size is the size of the opcode + ALL data mapped to this opcode.
             return new ParsedOpCode(opCode, dataBytes);
         }
@@ -155,13 +151,13 @@ namespace NDecred.TxScript
             var opCode = (OpCode) bytes[index];
             var length = (opCode - OpCode.OP_DATA_1) + 1;
             var data = bytes.Skip(index + 1).Take(length).ToArray();
-            
+
             if (data.Length < length)
                 throw new ScriptSyntaxErrorException(opCode, "Attempted to read more bytes than available in script");
-            
+
             // Seek forward
             index += 1 + data.Length;
-            
+
             return new ParsedOpCode(opCode, data);
         }
 
@@ -171,6 +167,18 @@ namespace NDecred.TxScript
             var value = (byte)(opCode - 0x50);
             return new ParsedOpCode((OpCode) bytes[index], new[]{value});
         }
-        
+
+        public override string ToString()
+        {
+            var tokens = new List<string>();
+            foreach (var opCode in ParsedOpCodes)
+            {
+                tokens.Add(opCode.Code.ToString());
+                if (opCode.Data.Length == 0) continue;
+                tokens.Add($"0x{Hex.FromByteArray(opCode.Data)}");
+            }
+
+            return string.Join(" ", tokens);
+        }
     }
 }

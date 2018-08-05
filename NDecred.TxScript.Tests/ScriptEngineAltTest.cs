@@ -15,12 +15,12 @@ namespace NDecred.TxScript.Tests
     {
         [Fact]
         public void ReadsTest()
-        {            
-            var rawTests = ParseScriptValid("./data/script_valid.json");     
+        {
+            var rawTests = ParseScriptValid("./data/script_valid.json");
             var testCases = ParseTestCases(rawTests);
 
             for (var index = 0; index < testCases.Length; index++)
-            {                
+            {
                 var test = testCases[index];
                 if (test.IsComment)
                     continue;
@@ -31,7 +31,7 @@ namespace NDecred.TxScript.Tests
                     var engine = new ScriptEngine(spendingTx, 0, test.PublicKeyScript);
                     engine.Run();
                 }
-                
+
                 catch (Exception e)
                 {
                     throw new Exception($"Failed test {index}.  {test.RawTest}", e);
@@ -54,48 +54,92 @@ namespace NDecred.TxScript.Tests
         private class TestCase
         {
             private static Regex _hexRegex = new Regex(
-                @"^(?<prefix>0x)(?<value>([\d]|[a-fA-F])+)|(?<value>-?\d+)$", 
+                @"^(?<prefix>0x)(?<value>([\d]|[a-fA-F])+)|(?<value>-?\d+)$",
                 RegexOptions.Compiled
             );
-            
+
             private static Regex _pushLiteralRegex = new Regex(
-                @"^'(?<data>.*?)'$", 
+                @"^'(?<data>.*?)'$",
                 RegexOptions.Compiled
             );
 
             public bool IsComment { get; }
-            
+
+            public ScriptOptions VmOptions { get; set; }
             public Script SignatureScript { get; }
             public Script PublicKeyScript { get; }
-            public string Flags { get; }
             public string Comments { get; }
             public string RawTest { get; }
-            
+
             public TestCase(string[] raw)
             {
                 var validLengths = new[] { 1, 3, 4 };
                 if(!validLengths.Contains(raw.Length))
                     throw new ArgumentException(
                         "Error parsing test: " + string.Join(", ", raw));
-                
+
                 IsComment = raw.Length == 1;
                 if (IsComment) return;
-                
+
                 if (raw.Length == 4)
                     Comments = raw[3];
 
-                if (raw[0] == "-1 0 1 2")
-                {
-                }
-
                 SignatureScript = new Script(ParseOpcodes(raw[0]));
                 PublicKeyScript = new Script(ParseOpcodes(raw[1]));
-                Flags = raw[2];
-                
-
+                VmOptions = ParseScriptOptions(raw[2]);
                 RawTest = string.Join(',', raw);
-                
             }
+
+            private ScriptOptions ParseScriptOptions(string rawOptions)
+            {
+                var options = new ScriptOptions()
+                {
+                    AssertScriptIntegerMinimalEncoding = false
+                };
+
+                var tokens = rawOptions.Split(",", StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var token in tokens)
+                {
+                    switch (token)
+                    {
+                        case "CHECKLOCKTIMEVERIFY":
+                            options.EnableCheckLockTimeVerify = true;
+                            break;
+                    }
+                }
+
+                return options;
+            }
+
+            /*
+             * 		case "CHECKLOCKTIMEVERIFY":
+			flags |= ScriptVerifyCheckLockTimeVerify
+		case "CHECKSEQUENCEVERIFY":
+			flags |= ScriptVerifyCheckSequenceVerify
+		case "CLEANSTACK":
+			flags |= ScriptVerifyCleanStack
+		case "DERSIG":
+			flags |= ScriptVerifyDERSignatures
+		case "DISCOURAGE_UPGRADABLE_NOPS":
+			flags |= ScriptDiscourageUpgradableNops
+		case "LOW_S":
+			flags |= ScriptVerifyLowS
+		case "MINIMALDATA":
+			flags |= ScriptVerifyMinimalData
+		case "NONE":
+			// Nothing.
+		case "P2SH":
+			flags |= ScriptBip16
+		case "SIGPUSHONLY":
+			flags |= ScriptVerifySigPushOnly
+		case "STRICTENC":
+			flags |= ScriptVerifyStrictEncoding
+		case "SHA256":
+			flags |= ScriptVerifySHA256
+		default:
+
+             */
 
             private ParsedOpCode[] ParseOpcodes(string raw)
             {
@@ -120,11 +164,15 @@ namespace NDecred.TxScript.Tests
                                 var value = match.Groups["value"].Value.Trim();
 
                                 if (isHex)
+                                {
                                     builder.AddRawScriptBytes(Hex.ToByteArray(value));
+                                }
                                 else
-                                    builder.AddInt64(long.Parse(value));                            
+                                {
+                                    builder.AddInt64(long.Parse(value));
+                                }
                             }
-                    
+
                             else if (_pushLiteralRegex.IsMatch(token))
                             {
                                 var data = _pushLiteralRegex.Match(token).Groups["data"].Value.Trim();
@@ -151,6 +199,7 @@ namespace NDecred.TxScript.Tests
                     throw new Exception("ParseOpCode fail.  Raw: " + raw, e);
                 }
             }
+
 
             public MsgTx SpendingTx()
             {
@@ -187,13 +236,13 @@ namespace NDecred.TxScript.Tests
                     },
                     TxOut = new[]
                     {
-                        new TxOut() 
+                        new TxOut()
                     }
                 };
 
                 return spendingTx;
             }
-            
+
             private ParsedOpCode ParseOpcode(string token)
             {
                 token = token.ToUpper().Trim();
