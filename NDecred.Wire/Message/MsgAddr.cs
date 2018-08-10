@@ -29,7 +29,7 @@ namespace NDecred.Wire
 
         public override void Encode(BinaryWriter writer)
         {
-            writer.WriteVariableLengthInteger((ulong)Addresses.Length);
+            writer.WriteVariableLengthInteger(Addresses.Length);
             foreach (var address in Addresses)
                 address.Encode(writer);
         }

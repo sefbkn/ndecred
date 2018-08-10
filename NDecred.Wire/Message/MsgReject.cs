@@ -5,7 +5,7 @@ namespace NDecred.Wire
 {
 	public class MsgReject : Message
     {
-	    public ulong MaxMessagePayload = (1024 * 1024 * 32);
+	    public long MaxMessagePayload = (1024 * 1024 * 32);
 	    
 	    // The message that was rejected
 	    public string RejectedCommand { get; set; }

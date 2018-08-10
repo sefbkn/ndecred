@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using NDecred.Common;
 
 namespace NDecred.Wire
@@ -9,6 +11,9 @@ namespace NDecred.Wire
         public const int MaxMessagePayload = 1024 * 1024 * 32;
         public const int MinTxInPayload = 11 + 32;
         public const int MaxTxInPerMessage = MaxMessagePayload / MinTxInPayload + 1;
+        public const int SequenceLockTimeDisabled = 1 << 31;
+        public const int SequenceLockTimeIsSeconds = 1 << 22;
+        public const int SequenceLockTimeMask = 0x0000ffff;
 
         public MsgTx()
         {
@@ -123,5 +128,10 @@ namespace NDecred.Wire
         }
 
         public override MsgCommand Command => MsgCommand.Tx;
+
+        public byte[] TxHash()
+        {
+            return GetHash(TxSerializeType.NoWitness);
+        }
     }
 }

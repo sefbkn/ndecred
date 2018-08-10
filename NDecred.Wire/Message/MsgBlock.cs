@@ -38,12 +38,12 @@ namespace NDecred.Wire
 
             var txCount = reader.ReadVariableLengthInteger();
             Transactions = Enumerable.Repeat(new MsgTx(), (int) txCount).ToArray();
-            for (ulong i = 0; i < txCount; i++)
+            for (long i = 0; i < txCount; i++)
                 Transactions[i].Decode(reader);
             
             var stxCount = reader.ReadVariableLengthInteger();
             StakeTransactions = Enumerable.Repeat(new MsgTx(), (int) stxCount).ToArray();
-            for (ulong i = 0; i < stxCount; i++)
+            for (long i = 0; i < stxCount; i++)
                 StakeTransactions[i].Decode(reader);
         }
 
@@ -51,11 +51,11 @@ namespace NDecred.Wire
         {
             Header.Encode(writer);
 
-            writer.WriteVariableLengthInteger((ulong) Transactions.Length);
+            writer.WriteVariableLengthInteger(Transactions.Length);
             foreach (var tx in Transactions)
                 tx.Encode(writer);
 
-            writer.WriteVariableLengthInteger((ulong) StakeTransactions.Length);
+            writer.WriteVariableLengthInteger(StakeTransactions.Length);
             foreach (var tx in StakeTransactions)
                 tx.Encode(writer);
         }

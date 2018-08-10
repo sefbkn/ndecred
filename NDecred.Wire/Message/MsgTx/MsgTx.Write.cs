@@ -7,11 +7,11 @@ namespace NDecred.Wire
     {
         private void EncodePrefix(BinaryWriter writer)
         {
-            writer.WriteVariableLengthInteger((ulong) TxIn.Length);
+            writer.WriteVariableLengthInteger(TxIn.Length);
             foreach (var tx in TxIn)
                 WriteTxInPrefix(writer, tx);
 
-            writer.WriteVariableLengthInteger((ulong) TxOut.Length);
+            writer.WriteVariableLengthInteger(TxOut.Length);
             foreach (var tx in TxOut)
                 WriteTxOut(writer, tx);
 
@@ -41,7 +41,7 @@ namespace NDecred.Wire
 
         private void EncodeWitness(BinaryWriter writer)
         {
-            writer.WriteVariableLengthInteger((ulong) TxIn.Length);
+            writer.WriteVariableLengthInteger(TxIn.Length);
             foreach (var tx in TxIn)
                 WriteTxInWitness(writer, tx);
         }
@@ -56,7 +56,7 @@ namespace NDecred.Wire
 
         private void EncodeWitnessSigning(BinaryWriter writer)
         {
-            writer.WriteVariableLengthInteger((ulong) TxIn.Length);
+            writer.WriteVariableLengthInteger(TxIn.Length);
             foreach (var tx in TxIn)
                 WriteTxInWitnessSigning(writer, tx);
         }
@@ -68,7 +68,7 @@ namespace NDecred.Wire
 
         private void EncodeWitnessValueSigning(BinaryWriter writer)
         {
-            writer.WriteVariableLengthInteger((ulong) TxIn.Length);
+            writer.WriteVariableLengthInteger(TxIn.Length);
             foreach (var tx in TxIn)
                 WriteTxInWitnessValueSigning(writer, tx);
         }

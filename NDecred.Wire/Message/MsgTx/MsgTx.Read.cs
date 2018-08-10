@@ -50,7 +50,7 @@ namespace NDecred.Wire
                 throw new WireException($"transaction count {count} too high to fit into message");
 
             TxIn = new TxIn[count];
-            for (ulong i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
                 TxIn[i] = ReadTxInWitnessValueSigning(reader);
         }
 
@@ -62,7 +62,7 @@ namespace NDecred.Wire
                 throw new WireException($"transaction count {count} too high to fit into message");
 
             TxIn = new TxIn[count];
-            for (ulong i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
                 TxIn[i] = ReadTxInWitnessSigning(reader);
         }
 
@@ -75,7 +75,7 @@ namespace NDecred.Wire
                     throw new WireException($"transaction count {count} too high to fit into message");
 
                 TxIn = new TxIn[count];
-                for (ulong i = 0; i < count; i++)
+                for (long i = 0; i < count; i++)
                     TxIn[i] = ReadTxInWitness(reader);
             }
             else
@@ -84,13 +84,13 @@ namespace NDecred.Wire
                 if (TxIn == null)
                     throw new InvalidOperationException(
                         "TxIn should be parsed before witness data for TxSerializeFull");
-                if (count != (ulong) TxIn.Length)
+                if (count != TxIn.Length)
                     throw new WireException(
                         $"transaction count {TxIn.Length} does not equal number of signature scripts {count}");
                 if (count > MaxTxInPerMessage)
                     throw new WireException($"transaction count {count} too high to fit into message");
 
-                for (ulong i = 0; i < count; i++)
+                for (long i = 0; i < count; i++)
                 {
                     var txInWitness = ReadTxInWitness(reader);
 
@@ -107,12 +107,12 @@ namespace NDecred.Wire
             var count = reader.ReadVariableLengthInteger();
             TxIn = new TxIn[count];
 
-            for (ulong i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
                 TxIn[i] = ReadTxInPrefix(reader, SerializationType);
 
             count = reader.ReadVariableLengthInteger();
             TxOut = new TxOut[count];
-            for (ulong i = 0; i < count; i++)
+            for (long i = 0; i < count; i++)
                 TxOut[i] = ReadTxOut(reader);
 
             LockTime = reader.ReadUInt32();

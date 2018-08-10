@@ -90,7 +90,7 @@ namespace NDecred.Network.Tests
                 Assert.True(test.EncodedMessage.SequenceEqual(deserialized));
             }
         }
-/*
+
         [Fact]
         public void GetRoot_GivenTestnetGenesisTranasction_ReturnsExpectedMerkleRoot()
         {
@@ -151,7 +151,8 @@ namespace NDecred.Network.Tests
             var hash = testnetGenesisTx.GetHash();
             var merkleTree = new MerkleTree();
             var merkleRoot = merkleTree.GetRoot(new[] {hash});
+            
+//            Assert.True();
         }
-*/
     }
 }

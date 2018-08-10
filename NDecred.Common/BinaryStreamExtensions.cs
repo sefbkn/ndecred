@@ -12,23 +12,31 @@ namespace NDecred.Common
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="value"></param>
-        public static void WriteVariableLengthInteger(this BinaryWriter writer, ulong value)
+        public static void WriteVariableLengthInteger(this BinaryWriter writer, long value)
         {
-            var format = (byte) (
-                value < 0xfd ? (byte) value : // write byte, excluding flags
-                value <= ushort.MaxValue ? 0xfd : // write ushort
-                value <= uint.MaxValue ? 0xfe : // write uint
-                0xff // write ulong
-            );
+            var unsignedValue = (ulong) value;
 
-            writer.Write(format);
+            if (unsignedValue < 0xFD)
+            {
+                writer.Write((byte) value);
+            }
 
-            if (format == 0xFF)
-                writer.Write(value);
-            else if (format == 0xFE)
-                writer.Write((uint) value);
-            else if (format == 0xFD)
+            else if (unsignedValue <= ushort.MaxValue)
+            {
+                writer.Write((byte)0xFD);
                 writer.Write((ushort) value);
+            }
+
+            else if (unsignedValue <= uint.MaxValue)
+            {
+                writer.Write((byte)0xFE);
+                writer.Write((uint) value);
+            }
+            else
+            {
+                writer.Write((byte)0xFF);
+                writer.Write(value);
+            }
         }
 
         /// <summary>
@@ -42,7 +50,7 @@ namespace NDecred.Common
         ///     If the parsed value is smaller than the minimum expected value for the amount of space
         ///     consumed, an exception is thrown.
         /// </exception>
-        public static ulong ReadVariableLengthInteger(this BinaryReader reader)
+        public static long ReadVariableLengthInteger(this BinaryReader reader)
         {
             ulong value;
             ulong min = 0;
@@ -55,7 +63,7 @@ namespace NDecred.Common
                     value = reader.ReadUInt64();
                     break;
                 case 0xFE:
-                    min = (uint) ushort.MaxValue + 1;
+                    min = (long) ushort.MaxValue + 1;
                     value = reader.ReadUInt32();
                     break;
                 case 0xFD:
@@ -67,22 +75,24 @@ namespace NDecred.Common
                     break;
             }
 
-            if (value < min)
+            if (min > value)
+            {
                 throw new Exception(
                     $"Noncanonical varint {value}. " +
                     $"Discriminant 0x{format:X} must encode a value greater than {min}");
+            }
 
-            return value;
+            return (long) value;
         }
 
-        public static byte[] ReadVariableLengthBytes(this BinaryReader reader, ulong maxLength)
+        public static byte[] ReadVariableLengthBytes(this BinaryReader reader, long maxLength)
         {
             var length = reader.ReadVariableLengthInteger();
             if (length > maxLength) throw new Exception("payload length prefix is longer than max allowed length");
             return reader.ReadBytes((int) length);
         }
 
-        public static string ReadVariableLengthString(this BinaryReader reader, ulong maxLength)
+        public static string ReadVariableLengthString(this BinaryReader reader, long maxLength)
         {
             var chars = reader.ReadVariableLengthBytes(maxLength)
                 .Select(b => (char) b)
@@ -91,17 +101,16 @@ namespace NDecred.Common
             return new string(chars);
         }
 
-
         public static void WriteVariableLengthBytes(this BinaryWriter writer, byte[] bytes)
         {
-            var length = (ulong) bytes.Length;
+            var length = (bytes?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(bytes);
         }
 
         public static void WriteVariableLengthString(this BinaryWriter writer, string str)
         {
-            var length = (ulong) str.Length;
+            var length = (str?.Length ?? 0);
             writer.WriteVariableLengthInteger(length);
             writer.Write(str);
         }

@@ -74,10 +74,14 @@ namespace NDecred.Wire
         {
             // Unsubscribe from peer events
             foreach (var peer in Peers)
+            {
                 peer.MessageReceived -= PeerMessageReceived;
+            }
 
             foreach (var peer in Peers)
+            {
                 peer.Dispose();
+            }
         }
     }
 }

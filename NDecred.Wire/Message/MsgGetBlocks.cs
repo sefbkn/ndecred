@@ -28,6 +28,7 @@ namespace NDecred.Wire
             var hashes = new byte[count][];
             for (var i = 0; i < hashes.Length; i++)
                 hashes[i] = reader.ReadBytes(32);
+            
             BlockLocatorHashes = hashes;
 	        
             HashStop = reader.ReadBytes(32);
@@ -36,7 +37,7 @@ namespace NDecred.Wire
         public override void Encode(BinaryWriter writer)
         {
             writer.Write(ProtocolVersion);
-            writer.WriteVariableLengthInteger((ulong) BlockLocatorHashes.Length);
+            writer.WriteVariableLengthInteger(BlockLocatorHashes.Length);
             foreach(var locatorHash in BlockLocatorHashes)
                 writer.Write(locatorHash);
             writer.Write(HashStop);

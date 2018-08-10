@@ -14,6 +14,10 @@ namespace NDecred.Wire
         }
     }
     
+    /// <summary>
+    /// Contains an incoming messaged received by a Peer instance, 
+    /// and passed when a MessageReceived event is fired.
+    /// </summary>
     public class PeerMessageReceivedArgs : PeerMessageReceivedArgs<Message>
     {
         public PeerMessageReceivedArgs(MessageHeader header, Message message) : base(header, message)
