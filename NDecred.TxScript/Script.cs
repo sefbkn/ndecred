@@ -19,37 +19,25 @@ namespace NDecred.TxScript
             ParsedOpCodes = subScripts.SelectMany(s => s).ToArray();
         }
 
-        public Script(IEnumerable<OpCode> opCodes) :
-            this(opCodes.Select(op => (byte) op).ToArray()) { }
+        public Script(byte[] bytes) : this(ParseOpCodes(bytes)) { }
 
-        public Script(byte[] bytes) :
-            this(ParseOpCodes(bytes)) { }
-
-        private static IEnumerable<byte[]> SplitByOpCode(byte[] data, OpCode separator)
-        {
-            var lastSeparator = 0;
-            for (var i = 0; i < data.Length; i++)
-            {
-                if (data[i] != (byte) separator) continue;
-
-                var take = i - lastSeparator;
-                if (take == 0) continue;
-
-                yield return data.Skip(lastSeparator).Take(take).ToArray();
-                lastSeparator = i + 1;
-            }
-        }
-
+        /// <summary>
+        /// Returns the current script, stripping all op codes that push
+        /// any of the provided byte arrays onto the stack.  The order of
+        /// opcodes in the script is not modified.
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public ParsedOpCode[] GetOpCodesWithoutData(params byte[][] values)
         {
             return ParsedOpCodes
                 .Where(op => op.IsCanonicalPush())
-                .Where(op => !values.Any(val => op.Data.Contains(val))).ToArray();
+                .Where(op => !values.Any(val => op.Data.SequenceEqual(val)))
+                .ToArray();
         }
 
         /// <summary>
-        /// Parses raw opcode bytes into a collection of
-        /// structured op codes.
+        /// Parses raw opcode bytes into a collection of structured op codes.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
@@ -62,7 +50,7 @@ namespace NDecred.TxScript
                 var opCode = (OpCode) bytes[index];
 
                 // Some opcodes have data encoded in the script that must be parsed.
-                // These opcodes should also skip over the bytes consumed by them so
+                // These opcodes should also skip over the bytes consumed by them, so
                 // each iteration of this loop seeks to the next sequential opcode.
 
                 if (opCode.IsOpData())
@@ -127,11 +115,8 @@ namespace NDecred.TxScript
             if(offset + takeBytes > bytes.Length)
                 throw new ScriptSyntaxErrorException(opCode, $"Value succeeding {opCode} would read more bytes than available in script");
 
-            // Read the next takeBytes bytes from the script and push it on the data stack.
-            var dataBytes = bytes
-                .Skip(offset)
-                .Take(takeBytes)
-                .ToArray();
+            // Read the bytes succeeding the opcode + length prefix.
+            var dataBytes = bytes.Skip(offset).Take(takeBytes).ToArray();
 
             offset += takeBytes;
             index = offset;

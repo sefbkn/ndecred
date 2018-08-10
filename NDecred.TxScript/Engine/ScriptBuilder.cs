@@ -8,22 +8,51 @@ using NDecred.Cryptography;
 using NDecred.Wire;
 
 namespace NDecred.TxScript
-{   
+{
     public class ScriptBuilder
     {
         private readonly List<byte> _scriptBytes = new List<byte>();
+
+        public ScriptBuilder()
+        {
+        }
+
+        public ScriptBuilder(params object[] data)
+        {
+            Add(data);
+        }
 
         public void AddRawScriptBytes(byte[] data)
         {
             _scriptBytes.AddRange(data);
         }
-        
+
+        public void Add(params object[] elements)
+        {
+            foreach (var element in elements)
+            {
+                var type = element.GetType();
+                if(type == typeof(string))
+                    AddData((string) element);
+                else if(type == typeof(byte[]))
+                    AddData((byte[]) element);
+                else if (type == typeof(OpCode))
+                    AddOpCode((OpCode) element);
+                else if(type == typeof(long) || type == typeof(int) || type == typeof(short))
+                    AddInt64(long.Parse(element.ToString()));
+                else if(type == typeof(ParsedOpCode))
+                    AddOpCode((ParsedOpCode) element);
+                else
+                    throw new InvalidOperationException($"Cannot add object of type {type} to script");
+            }
+        }
+
         public void AddData(string data)
         {
             var bytes = Encoding.UTF8.GetBytes(data);
             AddData(bytes);
         }
-        
+
         public void AddData(byte[] data)
         {
             var opCode = OpCodeUtil.CanonicalOpCodeForData(data);
@@ -38,6 +67,11 @@ namespace NDecred.TxScript
             AddData(bytes);
         }
 
+        public void AddOpCode(OpCode opCode)
+        {
+            _scriptBytes.Add((byte) opCode);
+        }
+
         public void AddOpCode(ParsedOpCode opCode)
         {
             _scriptBytes.AddRange(opCode.Serialize());
@@ -47,7 +81,7 @@ namespace NDecred.TxScript
         {
             return new Script(_scriptBytes.ToArray());
         }
-        
+
         public static Script P2PKHUnlockingScript(ECDSAType signatureType, byte[] signature, byte[] publicKey)
         {
             if(signatureType != ECDSAType.ECTypeSecp256k1)
@@ -76,7 +110,7 @@ namespace NDecred.TxScript
                     bytes[24] = (byte) OpCode.OP_CHECKSIG;
                     return new Script(bytes);
             }
-                        
+
             throw new NotImplementedException();
         }
     }

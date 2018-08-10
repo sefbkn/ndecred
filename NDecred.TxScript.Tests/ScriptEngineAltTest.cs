@@ -28,7 +28,7 @@ namespace NDecred.TxScript.Tests
                 try
                 {
                     var spendingTx = test.SpendingTx();
-                    var engine = new ScriptEngine(spendingTx, 0, test.PublicKeyScript);
+                    var engine = new ScriptEngine(spendingTx, 0, test.PublicKeyScript, new ScriptOptions());
                     engine.Run();
                 }
 

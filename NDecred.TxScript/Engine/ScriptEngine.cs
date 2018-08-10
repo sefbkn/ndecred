@@ -22,19 +22,26 @@ namespace NDecred.TxScript
         /// <param name="transaction">The transaction that the script applies to.</param>
         /// <param name="script"></param>
         /// <param name="options"></param>
-        /// <param name="mainStack"></param>
-        /// <param name="branchStack"></param>
-        public ScriptEngine(MsgTx transaction, int txIndex, Script script, ScriptOptions options = null, ScriptStack mainStack = null, BranchStack branchStack = null)
+        public ScriptEngine(MsgTx transaction, int txIndex, Script script, ScriptOptions options)
         {
+            if (transaction == null)
+                throw new ArgumentNullException(nameof(transaction));
+            if(txIndex < 0 || txIndex >= transaction.TxIn.Length)
+                throw new ArgumentOutOfRangeException(nameof(txIndex));
+            if (script == null)
+                throw new ArgumentNullException(nameof(script));
+            if (options == null)
+                throw new ArgumentNullException(nameof(options));
+
             _transaction = transaction;
             _txIndex = txIndex;
             _script = script;
             _opCodeLookup = new Dictionary<OpCode, Action<ParsedOpCode>>();
 
-            Options = options ?? new ScriptOptions();
-            MainStack = mainStack ?? new ScriptStack(Options.AssertScriptIntegerMinimalEncoding);
-            BranchStack = branchStack ?? new BranchStack();
+            Options = options;
+            MainStack = new ScriptStack(Options.AssertScriptIntegerMinimalEncoding);
             AltStack = new ScriptStack(Options.AssertScriptIntegerMinimalEncoding);
+            BranchStack = new BranchStack();
 
             InitializeOpCodeDictionary();
         }
@@ -49,7 +56,7 @@ namespace NDecred.TxScript
         /// <summary>
         /// Executes a sequence of instructions, taking branching logic into account.
         /// </summary>
-        public void Run()
+        public bool Run()
         {
             lock (_lock)
             {
@@ -59,7 +66,19 @@ namespace NDecred.TxScript
                 {
                     var sigScript = new Script(_transaction.TxIn[_txIndex].SignatureScript);
                     var fullScript = new Script(sigScript.ParsedOpCodes, _script.ParsedOpCodes);
-                    RunInternal(fullScript);
+                    return RunInternal(fullScript);
+                }
+                catch (EarlyReturnException)
+                {
+                    return false;
+                }
+                catch (ReservedOpCodeException)
+                {
+                    return false;
+                }
+                catch (ScriptException)
+                {
+                    return false;
                 }
                 finally
                 {
@@ -68,7 +87,7 @@ namespace NDecred.TxScript
             }
         }
 
-        private void RunInternal(Script script)
+        private bool RunInternal(Script script)
         {
             foreach (var subScriptOps in script.Subscripts)
             {
@@ -79,20 +98,15 @@ namespace NDecred.TxScript
                 {
                     if (!CanExecuteNextOpCode(op)) { continue; }
 
-                    try
-                    {
-                        IncrementOpCounter(op.Code);
-                        VerifyOpDataSize(op.Data.Length);
-                        Execute(op);
-                    }
-                    catch (EarlyReturnException e)
-                    {
-                        break;
-                    }
+                    IncrementOpCounter(op.Code);
+                    VerifyOpDataSize(op.Data.Length);
+                    Execute(op);
                 }
 
                 EnsureBranchStackClean();
             }
+
+            return MainStack.PopBool();
         }
 
         private void EnsureBranchStackClean()

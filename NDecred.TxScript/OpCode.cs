@@ -10,10 +10,10 @@ namespace NDecred.TxScript
 
 		public OpCodeAttribute(int length)
 		{
-			
+
 		}
 	}
-	
+
 	// Enum declarations directly copied from dcrd
 	// https://github.com/decred/dcrd/tree/master/txscript/opcode.go
     public enum OpCode : byte
@@ -280,7 +280,7 @@ namespace NDecred.TxScript
 		OP_PUBKEY              = 0xfe, // 254 - bitcoin core internal
 		OP_INVALIDOPCODE       = 0xff  // 255 - bitcoin core internal
     }
-	
+
 	public static class OpCodeUtil
 	{
 		public static string ToString(OpCode opCode)
@@ -292,7 +292,7 @@ namespace NDecred.TxScript
 		{
 			return (OpCode) Enum.Parse(typeof(OpCode), value);
 		}
-		
+
 		public static bool IsConditional(this OpCode opCode)
 		{
 			return new[]{
@@ -302,17 +302,17 @@ namespace NDecred.TxScript
 				OpCode.OP_ENDIF
 			}.Contains(opCode);
 		}
-		
+
 		public static bool IsOpData(this OpCode opCode)
 		{
 			var opCodeRange = (min: OpCode.OP_DATA_1, max: OpCode.OP_DATA_75);
 			return opCode >= opCodeRange.min && opCode <= opCodeRange.max;
 		}
-		
-		// Return the optimal instruction based on the length of the data 
+
+		// Return the optimal instruction based on the length of the data
 		public static OpCode CanonicalOpCodeForData(byte[] data)
 		{
-			if (data.Length == 0 || data[0] == 0)
+			if (data.Length == 0 || data.Length == 1 && data[0] == 0)
 				return OpCode.OP_0;
 			if (data.Length > 0xffff)
 				return OpCode.OP_PUSHDATA4;
@@ -356,7 +356,7 @@ namespace NDecred.TxScript
 		}
 
 		// Reserved opcodes should cause a running script to fail.
-		// The existence of the opcode does not 
+		// The existence of the opcode does not
 		public static bool IsReserved(this OpCode code)
 		{
 			return new[]
@@ -371,67 +371,67 @@ namespace NDecred.TxScript
 		{
 			return new[]
 			{
-				OpCode.OP_NOP1, 
-				OpCode.OP_NOP4, 
-				OpCode.OP_NOP5, 
+				OpCode.OP_NOP1,
+				OpCode.OP_NOP4,
+				OpCode.OP_NOP5,
 				OpCode.OP_NOP6,
-				OpCode.OP_NOP7, 
-				OpCode.OP_NOP8, 
-				OpCode.OP_NOP9, 
+				OpCode.OP_NOP7,
+				OpCode.OP_NOP8,
+				OpCode.OP_NOP9,
 				OpCode.OP_NOP10,
-				OpCode.OP_UNKNOWN193, 
-				OpCode.OP_UNKNOWN194, 
+				OpCode.OP_UNKNOWN193,
+				OpCode.OP_UNKNOWN194,
 				OpCode.OP_UNKNOWN195,
 				OpCode.OP_UNKNOWN196,
-				OpCode.OP_UNKNOWN197, 
+				OpCode.OP_UNKNOWN197,
 				OpCode.OP_UNKNOWN198,
 				OpCode.OP_UNKNOWN199,
 				OpCode.OP_UNKNOWN200,
-				OpCode.OP_UNKNOWN201, 
+				OpCode.OP_UNKNOWN201,
 				OpCode.OP_UNKNOWN202,
 				OpCode.OP_UNKNOWN203,
 				OpCode.OP_UNKNOWN204,
-				OpCode.OP_UNKNOWN205, 
+				OpCode.OP_UNKNOWN205,
 				OpCode.OP_UNKNOWN206,
 				OpCode.OP_UNKNOWN207,
 				OpCode.OP_UNKNOWN208,
-				OpCode.OP_UNKNOWN209, 
+				OpCode.OP_UNKNOWN209,
 				OpCode.OP_UNKNOWN210,
 				OpCode.OP_UNKNOWN211,
 				OpCode.OP_UNKNOWN212,
-				OpCode.OP_UNKNOWN213, 
+				OpCode.OP_UNKNOWN213,
 				OpCode.OP_UNKNOWN214,
 				OpCode.OP_UNKNOWN215,
 				OpCode.OP_UNKNOWN216,
-				OpCode.OP_UNKNOWN217, 
+				OpCode.OP_UNKNOWN217,
 				OpCode.OP_UNKNOWN218,
 				OpCode.OP_UNKNOWN219,
 				OpCode.OP_UNKNOWN220,
-				OpCode.OP_UNKNOWN221, 
+				OpCode.OP_UNKNOWN221,
 				OpCode.OP_UNKNOWN222,
 				OpCode.OP_UNKNOWN223,
 				OpCode.OP_UNKNOWN224,
-				OpCode.OP_UNKNOWN225, 
+				OpCode.OP_UNKNOWN225,
 				OpCode.OP_UNKNOWN226,
 				OpCode.OP_UNKNOWN227,
 				OpCode.OP_UNKNOWN228,
-				OpCode.OP_UNKNOWN229, 
+				OpCode.OP_UNKNOWN229,
 				OpCode.OP_UNKNOWN230,
 				OpCode.OP_UNKNOWN231,
 				OpCode.OP_UNKNOWN232,
-				OpCode.OP_UNKNOWN233, 
+				OpCode.OP_UNKNOWN233,
 				OpCode.OP_UNKNOWN234,
 				OpCode.OP_UNKNOWN235,
 				OpCode.OP_UNKNOWN236,
-				OpCode.OP_UNKNOWN237, 
+				OpCode.OP_UNKNOWN237,
 				OpCode.OP_UNKNOWN238,
 				OpCode.OP_UNKNOWN239,
 				OpCode.OP_UNKNOWN240,
-				OpCode.OP_UNKNOWN241, 
+				OpCode.OP_UNKNOWN241,
 				OpCode.OP_UNKNOWN242,
 				OpCode.OP_UNKNOWN243,
 				OpCode.OP_UNKNOWN244,
-				OpCode.OP_UNKNOWN245, 
+				OpCode.OP_UNKNOWN245,
 				OpCode.OP_UNKNOWN246,
 				OpCode.OP_UNKNOWN247,
 				OpCode.OP_UNKNOWN248

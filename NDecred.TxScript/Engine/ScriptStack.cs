@@ -35,11 +35,15 @@ namespace NDecred.TxScript
 
         public byte[] Pop(int depth = 0)
         {
+            var index = _stack.Count - (1 + depth);
+
+            if(depth < 0)
+                throw new InvalidOperationException();
             if(_stack.Count == 0)
                 throw new EmptyScriptStackException();
 
-            var value = _stack[_stack.Count - (1 + depth)];
-            _stack.RemoveAt(_stack.Count - (1 + depth));
+            var value = _stack[index];
+            _stack.RemoveAt(index);
             return value;
         }
 
@@ -74,12 +78,14 @@ namespace NDecred.TxScript
             // Empty value, then false
             if (val.Length == 0)
                 return false;
+
             // All zeroes, then false
             if (val.All(b => b == 0x00))
                 return false;
+
+            // TODO: Is this the correct byte order?
             // If sign bit is the only bit set, then false
-            if (val.Last() == 0x80 &&
-                val.Take(val.Length - 1).All(b => b == 0x00))
+            if (val.Last() == 0x80 && val.Take(val.Length - 1).All(b => b == 0x00))
                 return false;
 
             return true;

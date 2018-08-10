@@ -609,7 +609,8 @@ namespace NDecred.TxScript
         private void OpHash160(ParsedOpCode obj)
         {
             var value = MainStack.Pop();
-            MainStack.Push(HashUtil.Ripemd160(HashUtil.Blake256(value)));
+            var hash = HashUtil.Ripemd160(HashUtil.Blake256(value));
+            MainStack.Push(hash);
         }
 
         private void OpHash256(ParsedOpCode obj)
@@ -986,5 +987,3 @@ namespace NDecred.TxScript
         }
     }
 }
-
-
