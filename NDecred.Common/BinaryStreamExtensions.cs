@@ -15,27 +15,27 @@ namespace NDecred.Common
         public static void WriteVariableLengthInteger(this BinaryWriter writer, long value)
         {
             var unsignedValue = (ulong) value;
-            var format = (byte) (
-                unsignedValue < 0xfd ? 0 : // write byte, no flags
-                unsignedValue <= ushort.MaxValue ? 0xfd : // write ushort
-                unsignedValue <= uint.MaxValue ? 0xfe : // write uint
-                0xff // write ulong
-            );
 
-            if (format == 0)
+            if (unsignedValue < 0xFD)
             {
                 writer.Write((byte) value);
             }
+
+            else if (unsignedValue <= ushort.MaxValue)
+            {
+                writer.Write((byte)0xFD);
+                writer.Write((ushort) value);
+            }
+
+            else if (unsignedValue <= uint.MaxValue)
+            {
+                writer.Write((byte)0xFE);
+                writer.Write((uint) value);
+            }
             else
             {
-                writer.Write(format);
-
-                if (format == 0xFF)
-                    writer.Write(value);
-                else if (format == 0xFE)
-                    writer.Write(value);
-                else if (format == 0xFD)
-                    writer.Write(value);
+                writer.Write((byte)0xFF);
+                writer.Write(value);
             }
         }
 
@@ -52,7 +52,7 @@ namespace NDecred.Common
         /// </exception>
         public static long ReadVariableLengthInteger(this BinaryReader reader)
         {
-            long value;
+            ulong value;
             ulong min = 0;
             var format = reader.ReadByte();
 
@@ -60,29 +60,29 @@ namespace NDecred.Common
             {
                 case 0xFF:
                     min = (long) uint.MaxValue + 1;
-                    value = reader.ReadInt64();
+                    value = reader.ReadUInt64();
                     break;
                 case 0xFE:
                     min = (long) ushort.MaxValue + 1;
-                    value = reader.ReadInt32();
+                    value = reader.ReadUInt32();
                     break;
                 case 0xFD:
                     min = 0xFD;
-                    value = reader.ReadInt16();
+                    value = reader.ReadUInt16();
                     break;
                 default:
                     value = format;
                     break;
             }
 
-            if (min > (ulong) value)
+            if (min > value)
             {
                 throw new Exception(
                     $"Noncanonical varint {value}. " +
                     $"Discriminant 0x{format:X} must encode a value greater than {min}");
             }
 
-            return value;
+            return (long) value;
         }
 
         public static byte[] ReadVariableLengthBytes(this BinaryReader reader, long maxLength)
