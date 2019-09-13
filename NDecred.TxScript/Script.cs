@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NDecred.Common;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace NDecred.TxScript
 {
@@ -47,7 +48,7 @@ namespace NDecred.TxScript
 
             for (var index = 0; index < bytes.Length;)
             {
-                var opCode = (OpCode) bytes[index];
+                var opCode = (OpCode)bytes[index];
 
                 // Some opcodes have data encoded in the script that must be parsed.
                 // These opcodes should also skip over the bytes consumed by them, so
@@ -90,7 +91,7 @@ namespace NDecred.TxScript
             // The number of bytes to read.
             int takeBytes;
             var offset = index + 1;
-            var opCode = (OpCode) bytes[index];
+            var opCode = (OpCode)bytes[index];
 
             switch (opCode)
             {
@@ -110,9 +111,9 @@ namespace NDecred.TxScript
                     throw new InvalidOperationException("OpPushData is only valid for OP_PUSHDATA(1|2|4)");
             }
 
-            if(takeBytes < 0)
+            if (takeBytes < 0)
                 throw new ScriptSyntaxErrorException(opCode, $"Expected positive integer to succeed opcode {opCode}");
-            if(offset + takeBytes > bytes.Length)
+            if (offset + takeBytes > bytes.Length)
                 throw new ScriptSyntaxErrorException(opCode, $"Value succeeding {opCode} would read more bytes than available in script");
 
             // Read the bytes succeeding the opcode + length prefix.
@@ -133,7 +134,7 @@ namespace NDecred.TxScript
         /// <returns></returns>
         private static ParsedOpCode ParseOpData(byte[] bytes, ref int index)
         {
-            var opCode = (OpCode) bytes[index];
+            var opCode = (OpCode)bytes[index];
             var length = (opCode - OpCode.OP_DATA_1) + 1;
             var data = bytes.Skip(index + 1).Take(length).ToArray();
 
@@ -148,9 +149,9 @@ namespace NDecred.TxScript
 
         private static ParsedOpCode ParseOpN(byte[] bytes, int index)
         {
-            var opCode = (OpCode) bytes[index];
+            var opCode = (OpCode)bytes[index];
             var value = (byte)(opCode - 0x50);
-            return new ParsedOpCode((OpCode) bytes[index], new[]{value});
+            return new ParsedOpCode((OpCode)bytes[index], new[] { value });
         }
 
         public override string ToString()
@@ -160,7 +161,7 @@ namespace NDecred.TxScript
             {
                 tokens.Add(opCode.Code.ToString());
                 if (opCode.Data.Length == 0) continue;
-                tokens.Add($"0x{Hex.FromByteArray(opCode.Data)}");
+                tokens.Add($"0x{Hex.ToHexString(opCode.Data)}");
             }
 
             return string.Join(" ", tokens);

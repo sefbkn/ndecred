@@ -5,6 +5,7 @@ using System.Linq;
 using NDecred.Common;
 using NDecred.Common.Encoding;
 using NDecred.Cryptography;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace NDecred.Core
 {
@@ -39,7 +40,7 @@ namespace NDecred.Core
             var isValidWifForNetwork = network.AddressPrefix.All.Any(p => p.SequenceEqual(prefix.networkPrefix));
             if (!isValidWifForNetwork)
                 throw new InvalidDataException(
-                    $"Wif is not valid for network {network.Name}.  Unrecognized prefix {Hex.FromByteArray(prefix.networkPrefix)}");
+                    $"Wif is not valid for network {network.Name}.  Unrecognized prefix {Hex.ToHexString(prefix.networkPrefix)}");
 
             return extendedKeyCheck.Skip(PrefixLength).Take(KeyLength).ToArray();
         }
@@ -48,13 +49,13 @@ namespace NDecred.Core
         {
             var prefixBytes = base58Decoded.Take(PrefixLength).ToArray();
             var networkPrefix = prefixBytes.Take(2).ToArray();
-            var signatureType = (ECDSAType) prefixBytes[2];
+            var signatureType = (ECDSAType)prefixBytes[2];
             return (networkPrefix, signatureType);
         }
 
         private static IEnumerable<byte> BuildPrefix(Network network, ECDSAType type)
         {
-            return network.AddressPrefix.PrivateKey.Concat(new[] {(byte) type});
+            return network.AddressPrefix.PrivateKey.Concat(new[] { (byte)type });
         }
     }
 }

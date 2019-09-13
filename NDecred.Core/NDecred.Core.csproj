@@ -22,9 +22,4 @@
       <Name>NDecred.Cryptography</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="NDecred.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\NDecred.Core.Tests\bin\Debug\netcoreapp2.0\NDecred.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>
