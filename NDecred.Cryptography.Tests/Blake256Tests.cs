@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using BlakeSharp;
 using NDecred.Common;
+using Org.BouncyCastle.Utilities.Encoders;
 using Xunit;
 
 namespace NDecred.Cryptography.Tests
@@ -23,7 +24,7 @@ namespace NDecred.Cryptography.Tests
             {
                 var input = Encoding.UTF8.GetBytes(test.input);
                 var hash = hashAlgo.ComputeHash(input);
-                var hashHex = Hex.FromByteArray(hash).ToLower();
+                var hashHex = Hex.ToHexString(hash).ToLower();
                 Assert.Equal(test.expected, hashHex);
             }
         }

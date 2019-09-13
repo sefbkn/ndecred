@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using NDecred.Common;
 using NDecred.Wire;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Utilities.Encoders;
 using Xunit;
 
 namespace NDecred.TxScript.Tests
@@ -74,7 +75,7 @@ namespace NDecred.TxScript.Tests
             public TestCase(string[] raw)
             {
                 var validLengths = new[] { 1, 3, 4 };
-                if(!validLengths.Contains(raw.Length))
+                if (!validLengths.Contains(raw.Length))
                     throw new ArgumentException(
                         "Error parsing test: " + string.Join(", ", raw));
 
@@ -152,7 +153,7 @@ namespace NDecred.TxScript.Tests
 
                     var builder = new ScriptBuilder();
 
-                    for(int i = 0; i < tokens.Length; i++)
+                    for (int i = 0; i < tokens.Length; i++)
                     {
                         var token = tokens[i];
                         try
@@ -165,7 +166,7 @@ namespace NDecred.TxScript.Tests
 
                                 if (isHex)
                                 {
-                                    builder.AddRawScriptBytes(Hex.ToByteArray(value));
+                                    builder.AddRawScriptBytes(Hex.Decode(value));
                                 }
                                 else
                                 {

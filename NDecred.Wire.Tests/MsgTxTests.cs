@@ -2,6 +2,7 @@
 using NDecred.Blockchain;
 using NDecred.Common;
 using NDecred.Wire;
+using Org.BouncyCastle.Utilities.Encoders;
 using Xunit;
 
 namespace NDecred.Network.Tests
@@ -18,13 +19,13 @@ namespace NDecred.Network.Tests
             {
                 Hash = new byte[32],
                 Index = 0xffffffff,
-                Tree = (byte) TxTree.TxTreeRegular
+                Tree = (byte)TxTree.TxTreeRegular
             },
             Sequence = 0xffffffff,
             ValueIn = 5000000000,
             BlockHeight = 0x3F3F3F3F,
             BlockIndex = 0x2E2E2E2E,
-            SignatureScript = new byte[] {0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62}
+            SignatureScript = new byte[] { 0x04, 0x31, 0xdc, 0x00, 0x1b, 0x01, 0x62 }
         };
 
         TxOut txOut = new TxOut(
@@ -63,12 +64,12 @@ namespace NDecred.Network.Tests
             {
                 Version = 1,
                 SerializationType = TxSerializeType.Full,
-                TxIn = new[] {txIn},
-                TxOut = new[] {txOut}
+                TxIn = new[] { txIn },
+                TxOut = new[] { txOut }
             };
 
-            var actualHash = msgTx.GetHash().Reverse();
-            var actualHashString = Hex.FromByteArray(actualHash);
+            var actualHash = msgTx.GetHash().Reverse().ToArray();
+            var actualHashString = Hex.ToHexString(actualHash);
             Assert.Equal(expectedHash, actualHashString);
         }
 
@@ -98,7 +99,7 @@ namespace NDecred.Network.Tests
             {
                 SerializationType = TxSerializeType.Full,
                 Version = 1,
-                TxIn = new []
+                TxIn = new[]
                 {
                     new TxIn
                     {
@@ -109,15 +110,15 @@ namespace NDecred.Network.Tests
                         },
                         SignatureScript = new byte[]
                         {
-                            0x04, 0xff, 0xff, 0x00, 0x1d, 0x01, 0x04, 0x45, 
-                            0x54, 0x68, 0x65, 0x20, 0x54, 0x69, 0x6d, 0x65, 
-                            0x73, 0x20, 0x30, 0x33, 0x2f, 0x4a, 0x61, 0x6e, 
-                            0x2f, 0x32, 0x30, 0x30, 0x39, 0x20, 0x43, 0x68, 
-                            0x61, 0x6e, 0x63, 0x65, 0x6c, 0x6c, 0x6f, 0x72, 
-                            0x20, 0x6f, 0x6e, 0x20, 0x62, 0x72, 0x69, 0x6e, 
-                            0x6b, 0x20, 0x6f, 0x66, 0x20, 0x73, 0x65, 0x63, 
-                            0x6f, 0x6e, 0x64, 0x20, 0x62, 0x61, 0x69, 0x6c, 
-                            0x6f, 0x75, 0x74, 0x20, 0x66, 0x6f, 0x72, 0x20, 
+                            0x04, 0xff, 0xff, 0x00, 0x1d, 0x01, 0x04, 0x45,
+                            0x54, 0x68, 0x65, 0x20, 0x54, 0x69, 0x6d, 0x65,
+                            0x73, 0x20, 0x30, 0x33, 0x2f, 0x4a, 0x61, 0x6e,
+                            0x2f, 0x32, 0x30, 0x30, 0x39, 0x20, 0x43, 0x68,
+                            0x61, 0x6e, 0x63, 0x65, 0x6c, 0x6c, 0x6f, 0x72,
+                            0x20, 0x6f, 0x6e, 0x20, 0x62, 0x72, 0x69, 0x6e,
+                            0x6b, 0x20, 0x6f, 0x66, 0x20, 0x73, 0x65, 0x63,
+                            0x6f, 0x6e, 0x64, 0x20, 0x62, 0x61, 0x69, 0x6c,
+                            0x6f, 0x75, 0x74, 0x20, 0x66, 0x6f, 0x72, 0x20,
                             0x62, 0x61, 0x6e, 0x6b, 0x73,
                         },
                         Sequence = 0xffffffff
@@ -150,9 +151,9 @@ namespace NDecred.Network.Tests
             // get the merkle root.
             var hash = testnetGenesisTx.GetHash();
             var merkleTree = new MerkleTree();
-            var merkleRoot = merkleTree.GetRoot(new[] {hash});
-            
-//            Assert.True();
+            var merkleRoot = merkleTree.GetRoot(new[] { hash });
+
+            //            Assert.True();
         }
     }
 }
